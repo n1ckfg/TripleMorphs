@@ -28,15 +28,12 @@
 
 			const scene = new THREE.Scene();
 
-			const material = new THREE.LineBasicMaterial({ color: 0x00ffff });
+			const material = new THREE.LineBasicMaterial({ color: 0xffffff });
 
-			function drawLine(points) {
-				for (let i=0; i<points.length; i++ ) {
-					points[i].multiplyScalar(10);
-				}
-				let geo = new THREE.BufferGeometry().setFromPoints(points);
-				let line = new THREE.Line(geo, material);
-				scene.add(line);
+			function drawLine(line) {
+				let geo = new THREE.BufferGeometry().setFromPoints(line);
+				let newLine = new THREE.Line(geo, material);
+				scene.add(newLine);
 			}
 
 			function drawLines(lines) {
@@ -45,48 +42,17 @@
 				}
 			}
 
-			/*
-			const points1 = [];
-			points1.push(new THREE.Vector3(- 10, 0, 0));
-			points1.push(new THREE.Vector3(0, 10, 0));
-			points1.push(new THREE.Vector3(10, 0, 0));
+			class Turtle {
 
-			const geo1 = new THREE.BufferGeometry().setFromPoints(points1);
-			// Note that lines are drawn between each consecutive pair of vertices, but not between the first and last (the line is not closed.)
+				constructor(pos, dir, angle) {
+					this.pos = pos;
+					this.dir = dir;
+					this.angle = angle;
+				}
 
-			// Now that we have points for two lines and a material, we can put them together to form a line.
+			}
 
-			const line1 = new THREE.Line(geo1, mat1);
-			// All that's left is to add it to the scene and call render.
-
-			scene.add(line1);
-
-			// ~ ~ ~ ~ ~
-
-			const mat2 = new THREE.LineBasicMaterial({
-			color: 0x00ffff
-			});
-
-			let v = 13;
-
-			const points2 = [];
-			points2.push(new THREE.Vector3(-v, 0, 0));
-			points2.push(new THREE.Vector3(0, v, 0));
-			points2.push(new THREE.Vector3(v, 0, 0));
-
-			const geo2 = new THREE.BufferGeometry().setFromPoints(points2);
-
-			const line2 = new THREE.Line(geo2, mat2);
-			scene.add(line2);
-
-			function render() {
-			renderer.render(scene, camera);
-			v++;
-			requestAnimationFrame(render);
-			}	 
-					
-			render();
-			*/
+			// ~ ~ ~ ~ ~ ~ ~ ~ ~
 
 			let lexicon = "Ff+-<>(.".split("");
 
@@ -114,11 +80,23 @@
 					pop[i] = {
 						cmds: create(40),
 					}
-					console.log(i + ". " + pop[i].cmds);
+					//console.log(i + ". " + pop[i].cmds);
 					//write(pop[i].cmds.join(""))
 				}
 
 				draw();
+			}
+
+			function testLine() {
+				let points = []
+				for (let i=0; i<100; i++) {
+					let x = Math.random() - 0.5;
+					let y = Math.random() - 0.5;
+					let z = 0;
+					points.push(new THREE.Vector3(x, y, z).multiplyScalar(50));
+				}
+
+				drawLine(points);
 			}
 
 			function turtledraw(t, cmds) {
@@ -127,14 +105,15 @@
 
 				for (let i=0; i<cmds.length; i++) {
 					let cmd = cmds[i];
+					
 					if (cmd == "F") {
 						// move forward, drawing a line:
-						lines.push(t.pos.clone());	
+						lines.push(t.pos.clone());  
 						t.pos.add(t.dir); // move
 						lines.push(t.pos.clone());
 					} else if (cmd == "f") {
 						// move forward, drawing a line:
-						lines.push(t.pos.clone());	
+						lines.push(t.pos.clone());  
 						t.pos.add(t.dir.clone().multiplyScalar(0.5)); // move
 						lines.push(t.pos.clone());
 					} else if (cmd == "+") {
@@ -149,11 +128,8 @@
 						t.angle /= 2;
 					} else if (cmd == "(") {
 						// spawn a copy of the turtle:
-						let t1 = {
-							pos: t.pos.clone(),
-							dir: t.dir.clone(),
-							angle: -t.angle
-						}
+						let t1 = new Turtle(t.pos.clone(), t.dir.clone(), -t.angle);
+
 						let morelines = turtledraw(t1, cmds.slice(i+1));
 						lines = lines.concat(morelines);
 					}
@@ -193,11 +169,7 @@
 					let col = i % cols;
 					//draw2D.push().scale(1/cols).translate(row, col)
 					
-					let turtle = {
-						pos: new THREE.Vector3(0.5, 0.9, 0),
-						dir: new THREE.Vector3(0, -0.1, 0),
-						angle: Math.PI/4
-					}
+					let turtle = new Turtle(new THREE.Vector3(50, 90, 0), new THREE.Vector3(0, -0.1, 0), Math.PI/4);
 
 					let lines = turtledraw(turtle, pop[i].cmds);
 					drawLines(lines);
