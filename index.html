@@ -30,16 +30,15 @@
 
 			const material = new THREE.LineBasicMaterial({ color: 0xffffff });
 
-			function drawLine(line) {
-				let geo = new THREE.BufferGeometry().setFromPoints(line);
+			const globalScale = 50;
+
+			function drawLine(points) {
+				for (let i=0; i<points.length; i++) {
+					points[i] = points[i].multiplyScalar(globalScale);
+				}
+				let geo = new THREE.BufferGeometry().setFromPoints(points);
 				let newLine = new THREE.Line(geo, material);
 				scene.add(newLine);
-			}
-
-			function drawLines(lines) {
-				for (let line of lines) {
-					drawLine(line);
-				}
 			}
 
 			class Turtle {
@@ -102,6 +101,7 @@
 			function turtledraw(t, cmds) {
 				let lines = [];
 				let now = clock.getElapsedTime();
+				let axis = new THREE.Vector3(0, 0, 1);
 
 				for (let i=0; i<cmds.length; i++) {
 					let cmd = cmds[i];
@@ -118,10 +118,10 @@
 						lines.push(t.pos.clone());
 					} else if (cmd == "+") {
 						// rotate 90 degrees:
-						//t.dir.rotate(t.angle * Math.sin(now));
+						t.dir.applyAxisAngle(axis, t.angle * Math.sin(now));
 					} else if (cmd == "-") {
 						// rotate 90 degrees:
-						//t.dir.rotate(-t.angle * Math.sin(now));
+						t.dir.applyAxisAngle(axis, -t.angle * Math.sin(now));
 					} else if (cmd == "<") {
 						t.angle *= 2;
 					} else if (cmd == ">") {
@@ -169,10 +169,10 @@
 					let col = i % cols;
 					//draw2D.push().scale(1/cols).translate(row, col)
 					
-					let turtle = new Turtle(new THREE.Vector3(50, 90, 0), new THREE.Vector3(0, -0.1, 0), Math.PI/4);
+					let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, -0.1, 0), Math.PI/4);
 
 					let lines = turtledraw(turtle, pop[i].cmds);
-					drawLines(lines);
+					drawLine(lines);
 					
 					//draw2D.pop()
 				}
