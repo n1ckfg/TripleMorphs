@@ -177,7 +177,9 @@
 		}
 
 		function draw() {
-			
+			// clear scene
+			scene.remove.apply(scene, scene.children);
+
 			for (let i=0; i<pop.length; i++) {
 				// get row/col from population index `i`
 				let row = Math.floor(i/cols);
@@ -195,6 +197,19 @@
 				
 				//draw2D.pop()
 			}
+
+			/*
+			// test
+			let points = []
+			for (let i=0; i<100; i++) {
+				let x = Math.random() - 0.5;
+				let y = Math.random() - 0.5;
+				let z = 0;
+				points.push(new THREE.Vector3(x, y, z).multiplyScalar(50));
+			}
+
+			drawLine(points);
+			*/
 
 			renderer.render(scene, camera);
 			requestAnimationFrame(draw);
