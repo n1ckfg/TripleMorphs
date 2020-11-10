@@ -1,74 +1,210 @@
 <!DOCTYPE html>
 <html>
 
-  <head>
-    <title>Hello</title>
-    <style>
-      body {
-        background: gray;
-      }
-    </style>
-    <script src="https://fox-gieg.com/js/libraries/threejs/122/three.min.js"></script>
-  </head> 
+	<head>
+		<title>Hello</title>
+		<style>
+			body {
+				background: gray;
+				margin: 0px;
+			}
+		</style>
+		<script src="https://fox-gieg.com/js/libraries/threejs/122/three.min.js"></script>
+	</head> 
 
-  <body>
-    <script>
-      const renderer = new THREE.WebGLRenderer();
-      renderer.setSize( window.innerWidth, window.innerHeight );
-      document.body.appendChild( renderer.domElement );
+	<body>
+		<script>
+			"use strict";
 
-      const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 500 );
-      camera.position.set( 0, 0, 100 );
-      camera.lookAt( 0, 0, 0 );
+		const renderer = new THREE.WebGLRenderer();
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		document.body.appendChild(renderer.domElement);
 
-      const scene = new THREE.Scene();
-      // Next thing we will do is define a material. For lines we have to use LineBasicMaterial or LineDashedMaterial.
+		const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500);
+		camera.position.set(0, 0, 100);
+		camera.lookAt(0, 0, 0);
 
-      // create a blue LineBasicMaterial
-      const mat1 = new THREE.LineBasicMaterial( { color: 0x0000ff } );
-      // After material we will need a geometry with some vertices:
+		const scene = new THREE.Scene();
+		// Next thing we will do is define a material. For lines we have to use LineBasicMaterial or LineDashedMaterial.
 
-      const points1 = [];
-      points1.push( new THREE.Vector3( - 10, 0, 0 ) );
-      points1.push( new THREE.Vector3( 0, 10, 0 ) );
-      points1.push( new THREE.Vector3( 10, 0, 0 ) );
+		// create a blue LineBasicMaterial
+		const material = new THREE.LineBasicMaterial({ color: 0x00ffff });
+		// After material we will need a geometry with some vertices:
 
-      const geo1 = new THREE.BufferGeometry().setFromPoints( points1 );
-      // Note that lines are drawn between each consecutive pair of vertices, but not between the first and last (the line is not closed.)
+		/*
+		const points1 = [];
+		points1.push(new THREE.Vector3(- 10, 0, 0));
+		points1.push(new THREE.Vector3(0, 10, 0));
+		points1.push(new THREE.Vector3(10, 0, 0));
 
-      // Now that we have points for two lines and a material, we can put them together to form a line.
+		const geo1 = new THREE.BufferGeometry().setFromPoints(points1);
+		// Note that lines are drawn between each consecutive pair of vertices, but not between the first and last (the line is not closed.)
 
-      const line1 = new THREE.Line( geo1, mat1 );
-      // All that's left is to add it to the scene and call render.
+		// Now that we have points for two lines and a material, we can put them together to form a line.
 
-      scene.add( line1 );
-      
-      // ~ ~ ~ ~ ~
-      
-      const mat2 = new THREE.LineBasicMaterial({
-        color: 0x00ffff
-      });
-      
-      let v = 13;
-      
-      const points2 = [];
-      points2.push( new THREE.Vector3( -v, 0, 0 ) );
-      points2.push( new THREE.Vector3( 0, v, 0 ) );
-      points2.push( new THREE.Vector3( v, 0, 0 ) );
+		const line1 = new THREE.Line(geo1, mat1);
+		// All that's left is to add it to the scene and call render.
 
-      const geo2 = new THREE.BufferGeometry().setFromPoints( points2 );
+		scene.add(line1);
 
-      const line2 = new THREE.Line( geo2, mat2 );
-      scene.add( line2 );
-      
-      function render() {
-        renderer.render(scene, camera);
-        v++;
-        requestAnimationFrame(render);
-      }   
-            
-      render();
-    </script>
-  </body>
-  
+		// ~ ~ ~ ~ ~
+
+		const mat2 = new THREE.LineBasicMaterial({
+		color: 0x00ffff
+		});
+
+		let v = 13;
+
+		const points2 = [];
+		points2.push(new THREE.Vector3(-v, 0, 0));
+		points2.push(new THREE.Vector3(0, v, 0));
+		points2.push(new THREE.Vector3(v, 0, 0));
+
+		const geo2 = new THREE.BufferGeometry().setFromPoints(points2);
+
+		const line2 = new THREE.Line(geo2, mat2);
+		scene.add(line2);
+
+		function render() {
+		renderer.render(scene, camera);
+		v++;
+		requestAnimationFrame(render);
+		}	 
+				
+		render();
+			*/
+
+				let lexicon = "Ff+-<>(.".split("")
+
+		let pop = []
+		let pop_size = 16
+		let mutability = 0.5
+
+		// get number of columns/rows from population size:
+		let cols = Math.ceil(Math.sqrt(pop_size))
+		let rows = cols
+
+		let cmds
+
+		function create(size) {
+			let geno = []
+			for (let i=0; i<size; i++) {
+				geno.push(lexicon[Math.random() * lexicon.length])	
+			}
+			return geno;
+		}
+
+		function reset() {
+			pop = []
+			for (let i=0; i<pop_size; i++) {
+				pop[i] = {
+					cmds: create(40),
+				}
+				//write(pop[i].cmds.join(""))
+			}
+
+			draw();
+		}
+
+		function turtledraw(t, cmds) {
+				let lines = [];
+				
+				for (let i=0; i<cmds.length; i++) {
+					let cmd = cmds[i];
+					if (cmd == "F") {
+						// move forward, drawing a line:
+						lines.push(t.pos.clone());	
+						t.pos.add(t.dir) // move
+						lines.push(t.pos.clone());
+					} else if (cmd == "f") {
+						// move forward, drawing a line:
+						lines.push(t.pos.clone());	
+						t.pos.add(t.dir.clone().mul(0.5)) // move
+						lines.push(t.pos.clone());
+					} else if (cmd == "+") {
+						// rotate 90 degrees:
+						t.dir.rotate(t.angle * Math.sin(now))
+					} else if (cmd == "-") {
+						// rotate 90 degrees:
+						t.dir.rotate(-t.angle * Math.sin(now))
+					} else if (cmd == "<") {
+						t.angle *= 2
+					} else if (cmd == ">") {
+						t.angle /= 2
+					} else if (cmd == "(") {
+						// spawn a copy of the turtle:
+						let t1 = {
+							pos: t.pos.clone(),
+							dir: t.dir.clone(),
+							angle: -t.angle,
+						}
+						let morelines = turtledraw(t1, cmds.slice(i+1))
+						lines = lines.concat(morelines)
+					}
+				}
+				return lines;
+		}
+
+		function regenerate(chosen) {
+			let newpop = []
+			let parent = pop[chosen]
+			
+			for (let i=0; i<pop_size; i++) {
+				let child = {
+					cmds: []
+				}
+				
+				for (let j=0; j<parent.cmds.length; j++) {
+					if (random() < mutability / parent.cmds.length) {
+						child.cmds[j] = lexicon[random(lexicon.length)]
+					} else {
+						child.cmds[j] = parent.cmds[j];
+					}
+				}
+				newpop[i] = child
+				
+			}
+			pop = newpop;
+		}
+
+		function draw() {
+			
+			for (let i=0; i<pop.length; i++) {
+				// get row/col from population index `i`
+				let row = Math.floor(i/cols);
+				let col = i % cols;
+				draw2D.push()
+					.scale(1/cols).translate(row, col)
+				
+				let turtle = {
+						pos: new vec2(0.5, 0.9),
+						dir: new vec2(0, -0.1),
+					angle: Math.PI/4,
+				}
+				let lines = turtledraw(turtle, pop[i].cmds)
+				draw2D.lines(lines)
+				
+				draw2D.pop()
+			}
+
+			renderer.render(scene, camera);
+			requestAnimationFrame(render);
+		}
+
+		function mouse(kind, pt) {
+			if (kind == "down") {
+				// scale point up to grid size:
+				let col = Math.floor(pt[0] * cols);
+				let row = Math.floor(pt[1] * cols);
+				let index = row + col*cols;
+
+				// now create a new generation with `pop[index]`...
+				regenerate(index)
+			}
+		}
+
+		window.onload = reset;
+		</script>
+	</body>
+
 </html>
