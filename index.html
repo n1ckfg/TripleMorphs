@@ -35,8 +35,9 @@
 			const globalScale = 50;
 
 			function drawLine(points) {
-				for (let i=0; i<points.length; i++) {
-					points[i] = points[i].multiplyScalar(globalScale);
+				for (let point of points) {
+					point.multiplyScalar(globalScale);
+					point.y *= -1;
 				}
 				let geo = new THREE.BufferGeometry().setFromPoints(points);
 				let newLine = new THREE.Line(geo, material);
@@ -106,6 +107,7 @@
 				let lines = [];
 				let now = clock.getElapsedTime();
 				let axis = new THREE.Vector3(0, 0, 1);
+				let turtleStep = 0.5;
 
 				for (let i=0; i<cmds.length; i++) {
 					let cmd = cmds[i];
@@ -118,7 +120,7 @@
 					} else if (cmd == "f") {
 						// move forward, drawing a line:
 						lines.push(t.pos.clone());  
-						t.pos.add(t.dir.clone().multiplyScalar(0.5)); // move
+						t.pos.add(t.dir.clone().multiplyScalar(turtleStep));//0.5)); // move
 						lines.push(t.pos.clone());
 					} else if (cmd == "+") {
 						// rotate 90 degrees:
@@ -149,7 +151,7 @@
 				for (let i=0; i<pop_size; i++) {
 					let child = {
 						cmds: []
-					}
+					};
 					
 					for (let j=0; j<parent.cmds.length; j++) {
 						if (Math.random() < mutability / parent.cmds.length) {
@@ -211,6 +213,10 @@
 				}
 			}
 			*/
+
+		    window.addEventListener("keydown", function(event) {
+				if (util.getKeyCode(event) === ' ')	regenerate(0);	    
+			});
 
 			window.onload = reset;
 		</script>
