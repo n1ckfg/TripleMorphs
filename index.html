@@ -10,6 +10,8 @@
 			}
 		</style>
 		<script src="https://fox-gieg.com/js/libraries/threejs/122/three.min.js"></script>
+		<script src="./js/libraries/util.js/general-util.js"></script>
+		<script src="./js/libraries/util.js/threejs-util.js"></script>
 	</head> 
 
 	<body>
@@ -82,6 +84,8 @@
 					//console.log(i + ". " + pop[i].cmds);
 					//write(pop[i].cmds.join(""))
 				}
+
+				setupPlayer();
 
 				draw();
 			}
@@ -189,7 +193,7 @@
 
 				drawLine(points);
 				*/
-
+				updatePlayer();
 				renderer.render(scene, camera);
 				requestAnimationFrame(draw);
 			}
