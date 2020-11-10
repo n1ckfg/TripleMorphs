@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>Hello</title>
+    <style>
+      body {
+        background: gray;
+      }
+    </style>
+    <script src="https://fox-gieg.com/js/libraries/threejs/122/three.min.js"></script>
+  </head> 
+
+  <body>
+    <script>
+      const renderer = new THREE.WebGLRenderer();
+      renderer.setSize( window.innerWidth, window.innerHeight );
+      document.body.appendChild( renderer.domElement );
+
+      const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 500 );
+      camera.position.set( 0, 0, 100 );
+      camera.lookAt( 0, 0, 0 );
+
+      const scene = new THREE.Scene();
+      // Next thing we will do is define a material. For lines we have to use LineBasicMaterial or LineDashedMaterial.
+
+      // create a blue LineBasicMaterial
+      const mat1 = new THREE.LineBasicMaterial( { color: 0x0000ff } );
+      // After material we will need a geometry with some vertices:
+
+      const points1 = [];
+      points1.push( new THREE.Vector3( - 10, 0, 0 ) );
+      points1.push( new THREE.Vector3( 0, 10, 0 ) );
+      points1.push( new THREE.Vector3( 10, 0, 0 ) );
+
+      const geo1 = new THREE.BufferGeometry().setFromPoints( points1 );
+      // Note that lines are drawn between each consecutive pair of vertices, but not between the first and last (the line is not closed.)
+
+      // Now that we have points for two lines and a material, we can put them together to form a line.
+
+      const line1 = new THREE.Line( geo1, mat1 );
+      // All that's left is to add it to the scene and call render.
+
+      scene.add( line1 );
+      
+      // ~ ~ ~ ~ ~
+      
+      const mat2 = new THREE.LineBasicMaterial({
+        color: 0x00ffff
+      });
+      
+      let v = 13;
+      
+      const points2 = [];
+      points2.push( new THREE.Vector3( -v, 0, 0 ) );
+      points2.push( new THREE.Vector3( 0, v, 0 ) );
+      points2.push( new THREE.Vector3( v, 0, 0 ) );
+
+      const geo2 = new THREE.BufferGeometry().setFromPoints( points2 );
+
+      const line2 = new THREE.Line( geo2, mat2 );
+      scene.add( line2 );
+      
+      function render() {
+        renderer.render(scene, camera);
+        v++;
+        requestAnimationFrame(render);
+      }   
+            
+      render();
+    </script>
+  </body>
+  
+</html>

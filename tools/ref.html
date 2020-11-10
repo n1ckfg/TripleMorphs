@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+	
+	<head>
+		<title>Biomorphs</title>
+		<script src="https://fox-gieg.com/js/libraries/alife/alife.js" defer></script>
+	</head>
+
+	<body>
+		<script>
+		let lexicon = "Ff+-<>(.".split("")
+
+		let pop = []
+		let pop_size = 16
+		let mutability = 0.5
+
+		// get number of columns/rows from population size:
+		let cols = Math.ceil(Math.sqrt(pop_size))
+		let rows = cols
+
+		let cmds
+
+		function create(size) {
+		  let geno = []
+		  for (let i=0; i<size; i++) {
+		    geno.push( lexicon[random(lexicon.length)] )  
+		  }
+		  return geno;
+		}
+
+		function reset() {
+		  pop = []
+		  for (let i=0; i<pop_size; i++) {
+		    pop[i] = {
+		      cmds: create(40),
+		    }
+		    //write(pop[i].cmds.join(""))
+		  }
+		}
+
+		function turtledraw(t, cmds) {
+		    let lines = [];
+		    
+		    for (let i=0; i<cmds.length; i++) {
+		      let cmd = cmds[i];
+		      if (cmd == "F") {
+		        // move forward, drawing a line:
+		        lines.push(t.pos.clone());  
+		        t.pos.add(t.dir) // move
+		        lines.push(t.pos.clone());
+		      } else if (cmd == "f") {
+		        // move forward, drawing a line:
+		        lines.push(t.pos.clone());  
+		        t.pos.add(t.dir.clone().mul(0.5)) // move
+		        lines.push(t.pos.clone());
+		      } else if (cmd == "+") {
+		        // rotate 90 degrees:
+		        t.dir.rotate(t.angle * Math.sin(now))
+		      } else if (cmd == "-") {
+		        // rotate 90 degrees:
+		        t.dir.rotate(-t.angle * Math.sin(now))
+		      } else if (cmd == "<") {
+		        t.angle *= 2
+		      } else if (cmd == ">") {
+		        t.angle /= 2
+		      } else if (cmd == "(") {
+		        // spawn a copy of the turtle:
+		        let t1 = {
+		          pos: t.pos.clone(),
+		          dir: t.dir.clone(),
+		          angle: -t.angle,
+		        }
+		        let morelines = turtledraw(t1, cmds.slice(i+1))
+		        lines = lines.concat(morelines)
+		      }
+		    }
+		    return lines;
+		}
+
+		function regenerate(chosen) {
+		  let newpop = []
+		  let parent = pop[chosen]
+		  
+		  for (let i=0; i<pop_size; i++) {
+		    let child = {
+		      cmds: []
+		    }
+		    
+		    for (let j=0; j<parent.cmds.length; j++) {
+		      if (random() < mutability / parent.cmds.length) {
+		        child.cmds[j] = lexicon[random(lexicon.length)]
+		      } else {
+		        child.cmds[j] = parent.cmds[j];
+		      }
+		    }
+		    newpop[i] = child
+		    
+		  }
+		  pop = newpop;
+		}
+
+		function draw() {
+		  
+		  for (let i=0; i<pop.length; i++) {
+		    // get row/col from population index `i`
+		    let row = Math.floor(i/cols);
+		    let col = i % cols;
+		    draw2D.push()
+		      .scale(1/cols).translate(row, col)
+		    
+		    let turtle = {
+		        pos: new vec2(0.5, 0.9),
+		        dir: new vec2(0, -0.1),
+		      angle: Math.PI/4,
+		    }
+		    let lines = turtledraw(turtle, pop[i].cmds)
+		    draw2D.lines(lines)
+		    
+		    draw2D.pop()
+		  }
+		}
+
+		function mouse(kind, pt) {
+		  if (kind == "down") {
+		    // scale point up to grid size:
+		    let col = Math.floor(pt[0] * cols);
+		    let row = Math.floor(pt[1] * cols);
+		    let index = row + col*cols;
+
+		    // now create a new generation with `pop[index]`...
+		    regenerate(index)
+		  }
+		}
+		</script>
+	</body>
+
+</html>
