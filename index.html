@@ -28,17 +28,26 @@
 
 			}
 
-			const renderer = new THREE.WebGLRenderer();
+			const renderer = new THREE.WebGLRenderer({ antialiasing: true });
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			document.body.appendChild(renderer.domElement);
 
-			const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500);
+			const cameraFov = 60;
+			const cameraAspect = window.innerWidth / window.innerHeight;
+			const cameraNear = 1;
+			const cameraFar = 500;
+
+			const camera = new THREE.PerspectiveCamera(cameraFov, cameraAspect, cameraNear, cameraFar);
 			camera.position.set(0, 0, 0);
 			camera.lookAt(0, 0, 0);
 
 			const clock = new THREE.Clock();
 
 			const scene = new THREE.Scene();
+			const fogColor = 0x000000;
+			const fogDensity = 0.004;
+			scene.fog = new THREE.FogExp2(fogColor, fogDensity);
+			scene.background = new THREE.Color("#000000");  
 
 			const mat1 = new THREE.LineBasicMaterial({ color: 0xffffff });
 			const mat2 = new THREE.LineBasicMaterial({ color: 0x00ffff });
@@ -72,10 +81,6 @@
 				let geo = new THREE.BufferGeometry().setFromPoints(points);
 				let newLine = new THREE.Line(geo, mat1);
 				scene.add(newLine);
-
-				let geo2 = new THREE.BufferGeometry().setFromPoints([ points[0], points[1] ]);
-				let newLine2 = new THREE.Line(geo2, mat2);
-				scene.add(newLine2);
 			}
 
 			// ~ ~ ~ ~ ~ ~ ~ ~ ~
