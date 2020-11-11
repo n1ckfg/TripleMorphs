@@ -33,7 +33,7 @@
 			document.body.appendChild(renderer.domElement);
 
 			const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500);
-			camera.position.set(0, 0, 100);
+			camera.position.set(0, 0, 0);
 			camera.lookAt(0, 0, 0);
 
 			const clock = new THREE.Clock();
@@ -44,12 +44,20 @@
 
 			const globalScale = 50;
 
-			const globalOffset = new THREE.Vector3(-100, -100, -50);
+			const globalOffsetOrig = new THREE.Vector3(-100, -100, -150);
+			let globalOffset = globalOffsetOrig.clone();
 
 			const defaultAxis = new THREE.Vector3(0, 0, 1);
 
 			movingSpeedMax = 1.0;
 			movingDelta = 0.02;
+
+			function updateGlobalOffset() {
+				let x = camera.position.x + globalOffsetOrig.x;
+				let y = camera.position.y + globalOffsetOrig.y;
+				let z = camera.position.z + globalOffsetOrig.z;
+				globalOffset = new THREE.Vector3(x, y, z);
+			}
 
 			function drawLine(points, row, col) {
 				for (let point of points) {
@@ -114,9 +122,11 @@
 
 			function randomAxis() {
 				let r = Math.random();
-				if (r < 0.33) {
+				let xOdds = 0.02;
+				let yOdds = 0.02;
+				if (r < xOdds) {
 					return new THREE.Vector3(1,0,0);
-				} else if (r < 0.66) {
+				} else if (r < xOdds+yOdds) {
 					return new THREE.Vector3(0,1,0);
 				} else {
 					return new THREE.Vector3(0,0,1);
@@ -182,6 +192,8 @@
 					newpop[i] = child;
 				}
 				pop = newpop;
+
+				updateGlobalOffset();
 			}
 
 			function draw() {
