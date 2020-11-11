@@ -40,7 +40,8 @@
 
 			const scene = new THREE.Scene();
 
-			const material = new THREE.LineBasicMaterial({ color: 0xffffff });
+			const mat1 = new THREE.LineBasicMaterial({ color: 0xffffff });
+			const mat2 = new THREE.LineBasicMaterial({ color: 0x00ffff });
 
 			const globalScale = 50;
 
@@ -48,6 +49,8 @@
 			let globalOffset = globalOffsetOrig.clone();
 
 			const defaultAxis = new THREE.Vector3(0, 0, 1);
+
+			const triggerDistance = 20;
 
 			movingSpeedMax = 1.0;
 			movingDelta = 0.02;
@@ -67,8 +70,12 @@
 					point.z += globalOffset.z;
 				}
 				let geo = new THREE.BufferGeometry().setFromPoints(points);
-				let newLine = new THREE.Line(geo, material);
+				let newLine = new THREE.Line(geo, mat1);
 				scene.add(newLine);
+
+				let geo2 = new THREE.BufferGeometry().setFromPoints([ points[0], points[1] ]);
+				let newLine2 = new THREE.Line(geo2, mat2);
+				scene.add(newLine2);
 			}
 
 			// ~ ~ ~ ~ ~ ~ ~ ~ ~
@@ -99,25 +106,12 @@
 					pop[i] = {
 						cmds: create(40),
 					}
-					//console.log(i + ". " + pop[i].cmds);
 					//write(pop[i].cmds.join(""))
 				}
 
 				setupPlayer();
 
 				draw();
-			}
-
-			function testLine() {
-				let points = []
-				for (let i=0; i<100; i++) {
-					let x = Math.random() - 0.5;
-					let y = Math.random() - 0.5;
-					let z = 0;
-					points.push(new THREE.Vector3(x, y, z).multiplyScalar(50));
-				}
-
-				drawLine(points);
 			}
 
 			function randomAxis() {
@@ -211,21 +205,13 @@
 					let lines = turtledraw(turtle, pop[i].cmds);
 					drawLine(lines, row, col);
 					
+					if (lines[0].distanceTo(camera.position) < triggerDistance) {
+						console.log("Selected " + i);
+						regenerate(i);
+					}
 					//draw2D.pop()
 				}
 
-				/*
-				// test
-				let points = []
-				for (let i=0; i<100; i++) {
-					let x = Math.random() - 0.5;
-					let y = Math.random() - 0.5;
-					let z = 0;
-					points.push(new THREE.Vector3(x, y, z).multiplyScalar(50));
-				}
-
-				drawLine(points);
-				*/
 				updatePlayer();
 				renderer.render(scene, camera);
 				requestAnimationFrame(draw);
@@ -246,7 +232,7 @@
 			*/
 
 		    window.addEventListener("keydown", function(event) {
-				if (util.getKeyCode(event) === ' ')	regenerate(0);	    
+				if (util.getKeyCode(event) === ' ')	regenerate(parseInt(Math.random() * pop.length));	    
 			});
 
 			window.onload = reset;
