@@ -10,6 +10,12 @@
 			}
 		</style>
 		<script src="https://fox-gieg.com/js/libraries/threejs/122/three.min.js"></script>
+		<script src="https://fox-gieg.com/js/libraries/threejs/122/shaders/CopyShader.js"></script>
+		<script src="https://fox-gieg.com/js/libraries/threejs/122/shaders/LuminosityHighPassShader.js"></script>
+		<script src="https://fox-gieg.com/js/libraries/threejs/122/postprocessing/ShaderPass.js"></script>
+		<script src="https://fox-gieg.com/js/libraries/threejs/122/postprocessing/EffectComposer.js"></script>
+		<script src="https://fox-gieg.com/js/libraries/threejs/122/postprocessing/RenderPass.js"></script>
+		<script src="https://fox-gieg.com/js/libraries/threejs/122/postprocessing/UnrealBloomPass.js"></script>
 		<script src="./js/libraries/util.js/general-util.js"></script>
 		<script src="./js/libraries/util.js/threejs-util.js"></script>
 	</head> 
@@ -30,6 +36,8 @@
 
 			const renderer = new THREE.WebGLRenderer({ antialiasing: true });
 			renderer.setSize(window.innerWidth, window.innerHeight);
+			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.toneMapping = THREE.ReinhardToneMapping;
 			document.body.appendChild(renderer.domElement);
 
 			const cameraFov = 60;
@@ -49,8 +57,8 @@
 			scene.fog = new THREE.FogExp2(fogColor, fogDensity);
 			scene.background = new THREE.Color("#000000");  
 
-			const mat1 = new THREE.LineBasicMaterial({ color: 0xffffff });
-			const mat2 = new THREE.LineBasicMaterial({ color: 0x00ffff });
+			const mat1 = new THREE.LineBasicMaterial({ color: 0xaaffff });
+			const mat2 = new THREE.LineBasicMaterial({ color: 0xffffaa });
 
 			const globalScale = 50;
 
@@ -59,10 +67,23 @@
 
 			const defaultAxis = new THREE.Vector3(0, 0, 1);
 
-			const triggerDistance = 20;
+			const triggerDistance = 50;
 
-			movingSpeedMax = 1.0;
-			movingDelta = 0.02;
+			movingSpeedMax = 1.3;
+			movingDelta = 0.03;
+
+			// ~ ~ ~ 
+			const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+			bloomPass.threshold = 0;
+			bloomPass.strength = 3.5; //1.5;
+			bloomPass.radius = 0.8;
+
+			const renderScene = new THREE.RenderPass(scene, camera);
+
+			const composer = new THREE.EffectComposer(renderer);
+			composer.addPass(renderScene);
+			composer.addPass(bloomPass);
+			// ~ ~ ~ 
 
 			function updateGlobalOffset() {
 				let x = camera.position.x + globalOffsetOrig.x;
@@ -79,7 +100,13 @@
 					point.z += globalOffset.z;
 				}
 				let geo = new THREE.BufferGeometry().setFromPoints(points);
-				let newLine = new THREE.Line(geo, mat1);
+				
+				let newLine;
+				if (Math.random() < 0.2) {
+					newLine = new THREE.Line(geo, mat2);
+				} else {
+					newLine = new THREE.Line(geo, mat1);
+				}
 				scene.add(newLine);
 			}
 
@@ -134,7 +161,7 @@
 
 			function turtledraw(t, cmds) {
 				let lines = [];
-				let now = clock.getElapsedTime();
+				let now = clock.getElapsedTime() / 2;
 				let turtleStep = 0.5;
 
 				for (let i=0; i<cmds.length; i++) {
@@ -218,7 +245,10 @@
 				}
 
 				updatePlayer();
-				renderer.render(scene, camera);
+				
+				composer.render();
+				//renderer.render(scene, camera);
+				
 				requestAnimationFrame(draw);
 			}
 
