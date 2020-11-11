@@ -44,12 +44,19 @@
 
 			const globalScale = 50;
 
+			const globalOffset = new THREE.Vector3(-100, -100, -50);
+
+			const defaultAxis = new THREE.Vector3(0, 0, 1);
+
+			movingSpeedMax = 1.0;
+			movingDelta = 0.02;
+
 			function drawLine(points, row, col) {
 				for (let point of points) {
 					point.multiplyScalar(globalScale);
-					point.x += row * globalScale;
-					point.y += col * globalScale;
-					point.y *= -1;
+					point.x += (row * globalScale) + globalOffset.x;
+					point.y = (point.y + (col * globalScale) + globalOffset.y) * -1;
+					point.z += globalOffset.z;
 				}
 				let geo = new THREE.BufferGeometry().setFromPoints(points);
 				let newLine = new THREE.Line(geo, material);
@@ -105,10 +112,20 @@
 				drawLine(points);
 			}
 
+			function randomAxis() {
+				let r = Math.random();
+				if (r < 0.33) {
+					return new THREE.Vector3(1,0,0);
+				} else if (r < 0.66) {
+					return new THREE.Vector3(0,1,0);
+				} else {
+					return new THREE.Vector3(0,0,1);
+				}
+			}
+
 			function turtledraw(t, cmds) {
 				let lines = [];
 				let now = clock.getElapsedTime();
-				let axis = new THREE.Vector3(0, 0, 1);
 				let turtleStep = 0.5;
 
 				for (let i=0; i<cmds.length; i++) {
@@ -126,10 +143,10 @@
 						lines.push(t.pos.clone());
 					} else if (cmd == "+") {
 						// rotate 90 degrees:
-						t.dir.applyAxisAngle(axis, t.angle * Math.sin(now));
+						t.dir.applyAxisAngle(randomAxis(), t.angle * Math.sin(now));
 					} else if (cmd == "-") {
 						// rotate 90 degrees:
-						t.dir.applyAxisAngle(axis, -t.angle * Math.sin(now));
+						t.dir.applyAxisAngle(randomAxis(), -t.angle * Math.sin(now));
 					} else if (cmd == "<") {
 						t.angle *= 2;
 					} else if (cmd == ">") {
