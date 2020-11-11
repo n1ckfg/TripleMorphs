@@ -18,6 +18,16 @@
 		<script>
 			"use strict";
 
+			class Turtle {
+
+				constructor(pos, dir, angle) {
+					this.pos = pos;
+					this.dir = dir;
+					this.angle = angle;
+				}
+
+			}
+
 			const renderer = new THREE.WebGLRenderer();
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			document.body.appendChild(renderer.domElement);
@@ -34,24 +44,16 @@
 
 			const globalScale = 50;
 
-			function drawLine(points) {
+			function drawLine(points, row, col) {
 				for (let point of points) {
 					point.multiplyScalar(globalScale);
+					point.x += row * globalScale;
+					point.y += col * globalScale;
 					point.y *= -1;
 				}
 				let geo = new THREE.BufferGeometry().setFromPoints(points);
 				let newLine = new THREE.Line(geo, material);
 				scene.add(newLine);
-			}
-
-			class Turtle {
-
-				constructor(pos, dir, angle) {
-					this.pos = pos;
-					this.dir = dir;
-					this.angle = angle;
-				}
-
 			}
 
 			// ~ ~ ~ ~ ~ ~ ~ ~ ~
@@ -178,7 +180,7 @@
 					let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, -0.1, 0), Math.PI/4);
 
 					let lines = turtledraw(turtle, pop[i].cmds);
-					drawLine(lines);
+					drawLine(lines, row, col);
 					
 					//draw2D.pop()
 				}
