@@ -5,15 +5,16 @@
 		<title>Hello</title>
 		<style>
 			body {
-				background: gray;
+				background: black;
 				margin: 0px;
+				overflow: hidden;
 			}
 		</style>
 		<script src="https://fox-gieg.com/js/libraries/threejs/122/three.min.js"></script>
 		<script src="https://fox-gieg.com/js/libraries/threejs/122/shaders/CopyShader.js"></script>
 		<script src="https://fox-gieg.com/js/libraries/threejs/122/shaders/LuminosityHighPassShader.js"></script>
-		<script src="https://fox-gieg.com/js/libraries/threejs/122/postprocessing/ShaderPass.js"></script>
 		<script src="https://fox-gieg.com/js/libraries/threejs/122/postprocessing/EffectComposer.js"></script>
+		<script src="https://fox-gieg.com/js/libraries/threejs/122/postprocessing/ShaderPass.js"></script>
 		<script src="https://fox-gieg.com/js/libraries/threejs/122/postprocessing/RenderPass.js"></script>
 		<script src="https://fox-gieg.com/js/libraries/threejs/122/postprocessing/UnrealBloomPass.js"></script>
 		<script src="./js/libraries/util.js/general-util.js"></script>
@@ -34,10 +35,13 @@
 
 			}
 
-			const renderer = new THREE.WebGLRenderer({ antialiasing: false });
+			const renderer = new THREE.WebGLRenderer({ antialiasing: false, alpha: false });
 			renderer.setSize(window.innerWidth, window.innerHeight);
-			renderer.setPixelRatio( window.devicePixelRatio );
+			renderer.setPixelRatio(window.devicePixelRatio);
+			renderer.setClearColor(0x000000);
 			renderer.toneMapping = THREE.ReinhardToneMapping;
+			renderer.toneMappingExposure = Math.pow(1.05, 4.0);
+			renderer.autoClear = false;
 			document.body.appendChild(renderer.domElement);
 
 			const cameraFov = 60;
@@ -79,10 +83,10 @@
 			bloomPass.strength = 3.5; //1.5;
 			bloomPass.radius = 0.8;
 
-			const renderScene = new THREE.RenderPass(scene, camera);
+			const renderPass = new THREE.RenderPass(scene, camera);
 
 			const composer = new THREE.EffectComposer(renderer);
-			composer.addPass(renderScene);
+			composer.addPass(renderPass);
 			composer.addPass(bloomPass);
 			// ~ ~ ~ 
 
@@ -254,6 +258,8 @@
 			}
 
 			function draw() {
+				requestAnimationFrame(draw);
+
 				// clear scene
 				scene.remove.apply(scene, scene.children);
 
@@ -279,9 +285,6 @@
 				updatePlayer();
 				
 				composer.render();
-				//renderer.render(scene, camera);
-				
-				requestAnimationFrame(draw);
 			}
 
 			/*
