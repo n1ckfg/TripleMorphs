@@ -37,7 +37,7 @@
 			const renderer = new THREE.WebGLRenderer({ antialiasing: true });
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			renderer.setPixelRatio( window.devicePixelRatio );
-			//renderer.toneMapping = THREE.ReinhardToneMapping;
+			renderer.toneMapping = THREE.ReinhardToneMapping;
 			document.body.appendChild(renderer.domElement);
 
 			const cameraFov = 60;
@@ -138,7 +138,7 @@
 				pop = [];
 				for (let i=0; i<pop_size; i++) {
 					pop[i] = {
-						cmds: create(40),
+						cmds: create(60),
 					}
 					//write(pop[i].cmds.join(""))
 				}
