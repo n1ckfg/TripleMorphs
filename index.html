@@ -37,7 +37,7 @@
 			const renderer = new THREE.WebGLRenderer({ antialiasing: true });
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			renderer.setPixelRatio( window.devicePixelRatio );
-			renderer.toneMapping = THREE.ReinhardToneMapping;
+			//renderer.toneMapping = THREE.ReinhardToneMapping;
 			document.body.appendChild(renderer.domElement);
 
 			const cameraFov = 60;
@@ -65,7 +65,9 @@
 			const globalOffsetOrig = new THREE.Vector3(-100, -100, -350);
 			let globalOffset = globalOffsetOrig.clone();
 
-			const defaultAxis = new THREE.Vector3(0, 0, 1);
+			const axisX = new THREE.Vector3(1, 0, 0);
+			const axisY = new THREE.Vector3(0, 1, 0);
+			const axisZ = new THREE.Vector3(0, 0, 1);
 
 			const triggerDistance = 35;
 
@@ -112,7 +114,7 @@
 
 			// ~ ~ ~ ~ ~ ~ ~ ~ ~
 
-			let lexicon = "Ff+-<>(.".split("");
+			let lexicon = "FfXxYyZz<>(.".split("");
 
 			let pop = [];
 			let pop_size = 16;
@@ -177,12 +179,24 @@
 						lines.push(t.pos.clone());  
 						t.pos.add(t.dir.clone().multiplyScalar(turtleStep));//0.5)); // move
 						lines.push(t.pos.clone());
-					} else if (cmd == "+") {
+					} else if (cmd == "X") {
 						// rotate 90 degrees:
-						t.dir.applyAxisAngle(randomAxis(), t.angle * Math.sin(now));
-					} else if (cmd == "-") {
+						t.dir.applyAxisAngle(axisX, t.angle * Math.sin(now));
+					} else if (cmd == "x") {
 						// rotate 90 degrees:
-						t.dir.applyAxisAngle(randomAxis(), -t.angle * Math.sin(now));
+						t.dir.applyAxisAngle(axisX, -t.angle * Math.sin(now));
+					} else if (cmd == "Y") {
+						// rotate 90 degrees:
+						t.dir.applyAxisAngle(axisY, t.angle * Math.sin(now));
+					} else if (cmd == "y") {
+						// rotate 90 degrees:
+						t.dir.applyAxisAngle(axisY, -t.angle * Math.sin(now));
+					} else if (cmd == "Z") {
+						// rotate 90 degrees:
+						t.dir.applyAxisAngle(axisZ, t.angle * Math.sin(now));
+					} else if (cmd == "z") {
+						// rotate 90 degrees:
+						t.dir.applyAxisAngle(axisZ, -t.angle * Math.sin(now));
 					} else if (cmd == "<") {
 						t.angle *= 2;
 					} else if (cmd == ">") {
