@@ -34,7 +34,7 @@
 
 			}
 
-			const renderer = new THREE.WebGLRenderer({ antialiasing: true });
+			const renderer = new THREE.WebGLRenderer({ antialiasing: false });
 			renderer.setSize(window.innerWidth, window.innerHeight);
 			renderer.setPixelRatio( window.devicePixelRatio );
 			renderer.toneMapping = THREE.ReinhardToneMapping;
@@ -46,8 +46,7 @@
 			const cameraFar = 500;
 
 			const camera = new THREE.PerspectiveCamera(cameraFov, cameraAspect, cameraNear, cameraFar);
-			camera.position.set(0, 0, 0);
-			camera.lookAt(0, 0, 0);
+			resetCameraPosition();
 
 			const clock = new THREE.Clock();
 
@@ -61,9 +60,9 @@
 			const mat2 = new THREE.LineBasicMaterial({ color: 0xffffaa });
 
 			const globalScale = 50;
-
-			const globalOffsetOrig = new THREE.Vector3(-100, -100, -350);
-			let globalOffset = globalOffsetOrig.clone();
+			const globalOffset = new THREE.Vector3(-150, -190, -350);
+			const globalAxisOdds = 0.001;
+			const globalSpeedFactor = 4;
 
 			const axisX = new THREE.Vector3(1, 0, 0);
 			const axisY = new THREE.Vector3(0, 1, 0);
@@ -87,18 +86,16 @@
 			composer.addPass(bloomPass);
 			// ~ ~ ~ 
 
-			function updateGlobalOffset() {
-				let x = camera.position.x + globalOffsetOrig.x;
-				let y = camera.position.y + globalOffsetOrig.y;
-				let z = camera.position.z + globalOffsetOrig.z;
-				globalOffset = new THREE.Vector3(x, y, z);
+			function resetCameraPosition() {
+				camera.position.set(0, 0, 0);
+				camera.lookAt(0, 0, 0);
 			}
 
 			function drawLine(points, row, col) {
 				for (let point of points) {
 					point.multiplyScalar(globalScale);
 					point.x += (row * globalScale) + globalOffset.x;
-					point.y = (point.y + (col * globalScale) + globalOffset.y) * -1;
+					point.y += (col * globalScale) + globalOffset.y;
 					point.z += globalOffset.z;
 				}
 				let geo = new THREE.BufferGeometry().setFromPoints(points);
@@ -117,8 +114,8 @@
 			let lexicon = "FfXxYyZz<>(.".split("");
 
 			let pop = [];
-			let pop_size = 16;
-			let mutability = 0.5;
+			const pop_size = 36;
+			const mutability = 0.5;
 
 			// get number of columns/rows from population size:
 			let cols = Math.ceil(Math.sqrt(pop_size));
@@ -148,13 +145,33 @@
 				draw();
 			}
 
-			function randomAxis() {
+			function randomAxisX() {
 				let r = Math.random();
-				let xOdds = 0.02;
-				let yOdds = 0.02;
-				if (r < xOdds) {
+				if (r < globalAxisOdds) {
+					return new THREE.Vector3(0,1,0);
+				} else if (r < globalAxisOdds*2) {
+					return new THREE.Vector3(0,0,1);
+				} else {
 					return new THREE.Vector3(1,0,0);
-				} else if (r < xOdds+yOdds) {
+				}
+			}
+
+			function randomAxisY() {
+				let r = Math.random();
+				if (r < globalAxisOdds) {
+					return new THREE.Vector3(0,0,1);
+				} else if (r < globalAxisOdds*2) {
+					return new THREE.Vector3(1,0,0);
+				} else {
+					return new THREE.Vector3(0,1,0);
+				}
+			}
+
+			function randomAxisZ() {
+				let r = Math.random();
+				if (r < globalAxisOdds) {
+					return new THREE.Vector3(1,0,0);
+				} else if (r < globalAxisOdds*2) {
 					return new THREE.Vector3(0,1,0);
 				} else {
 					return new THREE.Vector3(0,0,1);
@@ -163,7 +180,7 @@
 
 			function turtledraw(t, cmds) {
 				let lines = [];
-				let now = clock.getElapsedTime() / 2;
+				let now = clock.getElapsedTime() / globalSpeedFactor;
 				let turtleStep = 0.5;
 
 				for (let i=0; i<cmds.length; i++) {
@@ -233,7 +250,7 @@
 				}
 				pop = newpop;
 
-				updateGlobalOffset();
+				resetCameraPosition();
 			}
 
 			function draw() {
@@ -246,7 +263,8 @@
 					let col = i % cols;
 					//draw2D.push().scale(1/cols).translate(row, col)
 					
-					let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, -0.1, 0), Math.PI/4);
+					//let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, -0.1, 0), Math.PI/4);
+					let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, 0.1, 0), Math.PI/4);
 
 					let lines = turtledraw(turtle, pop[i].cmds);
 					drawLine(lines, row, col);
