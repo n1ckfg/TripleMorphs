@@ -44,7 +44,9 @@
 			renderer.setPixelRatio(window.devicePixelRatio);
 			renderer.setClearColor(0x000000);
 			renderer.toneMapping = THREE.ReinhardToneMapping;
-			renderer.toneMappingExposure = Math.pow(1.05, 4.0);
+			const exposureLow = Math.pow(1.05, 4.0);
+			const exposureHigh = Math.pow(1.5, 4.0);
+			renderer.toneMappingExposure = exposureLow;
 			renderer.autoClear = false;
 			document.body.appendChild(renderer.domElement);
 
@@ -66,6 +68,7 @@
 
 			const mat1 = new THREE.LineBasicMaterial({ color: 0xaaffff });
 			const mat2 = new THREE.LineBasicMaterial({ color: 0xffffaa });
+			const mat3 = new THREE.LineBasicMaterial({ color: 0xff1111 });
 
 			const globalScale = 50;
 			const globalOffset = new THREE.Vector3(-150, -190, -350);
@@ -109,11 +112,16 @@
 				let geo = new THREE.BufferGeometry().setFromPoints(points);
 				
 				let newLine;
-				if (Math.random() < 0.2) {
-					newLine = new THREE.Line(geo, mat2);
+				if (armRegenerate) {
+					newLine = new THREE.Line(geo, mat3);
 				} else {
-					newLine = new THREE.Line(geo, mat1);
+					if (Math.random() < 0.2) {
+						newLine = new THREE.Line(geo, mat2);
+					} else {
+						newLine = new THREE.Line(geo, mat1);
+					}
 				}
+
 				scene.add(newLine);
 			}
 
@@ -261,6 +269,9 @@
 				resetCameraPosition();
 			}
 
+			let armRegenerate = false;
+			let armRegenerateIndex = 0;
+
 			function draw() {
 				requestAnimationFrame(draw);
 
@@ -279,15 +290,25 @@
 					let lines = turtledraw(turtle, pop[i].cmds);
 					drawLine(lines, row, col);
 					
-					if (lines[0].distanceTo(camera.position) < triggerDistance) {
+					if (!armRegenerate && lines[0].distanceTo(camera.position) < triggerDistance) {
 						console.log("Selected " + i);
-						regenerate(i);
+						armRegenerateIndex = i;
+						armRegenerate = true;
+						renderer.toneMappingExposure = exposureHigh;
 					}
 					//draw2D.pop()
 				}
 
 				updatePlayer();
 				
+				if (armRegenerate) {
+					setTimeout(function() {
+						regenerate(armRegenerateIndex);
+						armRegenerate = false;		
+						renderer.toneMappingExposure = exposureLow;			
+					}, 200);
+				}
+
 				composer.render();
 			}
 
