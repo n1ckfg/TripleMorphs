@@ -194,7 +194,7 @@ let lexicon = "FfXxYyZz<>(.".split("");
 let pop = [];
 const pop_size = 25;
 const mutability = 0.5;
-const numCmds = 40;
+const numCmds = 50;
 const angleChange = 1.5;
 let firstRun = true;
 
