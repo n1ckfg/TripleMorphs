@@ -66,12 +66,14 @@
 			let isDragging = false;
 			let phi = 0;
 			let theta = 0;
-			let MOUSE_SPEED_X = 1;
-			let MOUSE_SPEED_Y = 1;
+			let MOUSE_SPEED_X = 0;
+			let MOUSE_SPEED_Y = 0;
 
 			window.addEventListener("mousedown", function(event) {
 				rotateStart.set(event.clientX, event.clientY);
 				isDragging = true;
+				MOUSE_SPEED_X = 0.5;
+				MOUSE_SPEED_Y = 0.3;
 			});
 
 			// Very similar to https://gist.github.com/mrflix/8351020
@@ -107,6 +109,8 @@
 
 			window.addEventListener("mouseup", function(event) {
 				isDragging = false;
+				MOUSE_SPEED_X = 0;
+				MOUSE_SPEED_Y = 0;
 			});
 
 			function isPointerLocked() {
