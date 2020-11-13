@@ -15,6 +15,7 @@
 			}
 		</style>
 		<script src="https://fox-gieg.com/js/libraries/threejs/122/three.min.js"></script>
+		<script src="https://fox-gieg.com/js/libraries/threejs/122/THREE.MeshLine.js"></script>
 		<script src="https://fox-gieg.com/js/libraries/threejs/122/shaders/CopyShader.js"></script>
 		<script src="https://fox-gieg.com/js/libraries/threejs/122/shaders/LuminosityHighPassShader.js"></script>
 		<script src="https://fox-gieg.com/js/libraries/threejs/122/postprocessing/EffectComposer.js"></script>
@@ -127,12 +128,40 @@
 			scene.fog = new THREE.FogExp2(fogColor, fogDensity);
 			scene.background = new THREE.Color("#000000");  
 
-			const mat1 = new THREE.LineBasicMaterial({ color: 0xaaffff });
-			const mat2 = new THREE.LineBasicMaterial({ color: 0xffffaa });
-			const mat3 = new THREE.LineBasicMaterial({ color: 0xff1111 });
+			const meshLineWidth = 0.6;
+			const meshLineOpacity = 0.1;
+			const meshLineResolution = 0.1;
+
+			function createMat(_color, _opacity, _lineWidth) {
+			    let mat = new MeshLineMaterial({
+			        //useMap: 1,
+			        //map: texture,
+			        transparent: false,
+			        color: _color,
+			        sizeAttenuation: true,
+			        opacity: _opacity, 
+			        lineWidth: _lineWidth,
+			        depthWrite: false,
+			        depthTest: false,
+			        resolution: new THREE.Vector2(meshLineResolution, meshLineResolution),
+			        blending: THREE.AdditiveBlending
+			        /*
+			        blending: THREE[blending],
+			        blendSrc: THREE[blendSrc[4]],
+			        blendDst: THREE[blendDst[1]],
+			        blendEquation: THREE.AddEquation
+			        */
+			    });
+
+			    return mat;
+			}
+
+			const mat1 = createMat(0xaaffff, meshLineOpacity, meshLineWidth);
+			const mat2 = createMat(0xffffaa, meshLineOpacity, meshLineWidth);
+			const mat3 = createMat(0xff1111, meshLineOpacity, meshLineWidth);
 
 			const globalScale = 50;
-			const globalOffset = new THREE.Vector3(-150, -190, -350);
+			const globalOffset = new THREE.Vector3(-125, -160, -350); //(-150, -190, -350);
 			const globalAxisOdds = 0.001;
 			const globalSpeedFactor = 4;
 
@@ -172,16 +201,18 @@
 					point.y += (col * globalScale) + globalOffset.y;
 					point.z += globalOffset.z;
 				}
-				let geo = new THREE.BufferGeometry().setFromPoints(points);
-				
+				let geoBuffer = new THREE.BufferGeometry().setFromPoints(points);
+				let geo = new MeshLine();
+				geo.setGeometry(geoBuffer);
+
 				let newLine;
 				if (armRegenerate) {
-					newLine = new THREE.Line(geo, mat3);
+					newLine = new THREE.Mesh(geo.geometry, mat3);
 				} else {
 					if (Math.random() < 0.2) {
-						newLine = new THREE.Line(geo, mat2);
+						newLine = new THREE.Mesh(geo.geometry, mat2);
 					} else {
-						newLine = new THREE.Line(geo, mat1);
+						newLine = new THREE.Mesh(geo.geometry, mat1);
 					}
 				}
 
@@ -193,8 +224,9 @@
 			let lexicon = "FfXxYyZz<>(.".split("");
 
 			let pop = [];
-			const pop_size = 36;
+			const pop_size = 25;
 			const mutability = 0.5;
+			const numCmds = 50;
 
 			// get number of columns/rows from population size:
 			let cols = Math.ceil(Math.sqrt(pop_size));
@@ -214,7 +246,7 @@
 				pop = [];
 				for (let i=0; i<pop_size; i++) {
 					pop[i] = {
-						cmds: create(60),
+						cmds: create(numCmds),
 					}
 					//write(pop[i].cmds.join(""))
 				}
