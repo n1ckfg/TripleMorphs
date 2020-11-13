@@ -102,6 +102,28 @@ const meshLineWidth = 0.6;
 const meshLineOpacity = 0.1;
 const meshLineResolution = 0.1;
 
+function clearScene(obj) {
+	while (obj.children.length > 0) { 
+		clearScene(obj.children[0]);
+		obj.remove(obj.children[0]);
+	}
+	
+	if (obj.geometry) obj.geometry.dispose();
+
+	if (obj.material) { 
+		// in case of map, bumpMap, normalMap, envMap ...
+		Object.keys(obj.material).forEach(prop => {
+			if (!obj.material[prop]) {
+				return;         
+			}
+			if (obj.material[prop] !== null && typeof obj.material[prop].dispose === 'function') {
+				obj.material[prop].dispose();
+			}                                                  
+		});
+		obj.material.dispose();
+	}
+}   
+
 function createMat(_color, _opacity, _lineWidth) {
     let mat = new MeshLineMaterial({
         //useMap: 1,
@@ -172,15 +194,19 @@ const pop_size = 25;
 const mutability = 0.5;
 const numCmds = 50;
 
+let firstRun = true;
+
 function reset() {
 	pop = [];
 	for (let i=0; i<pop_size; i++) {
 		pop.push(new Child());
 	}
 
-	setupPlayer();
-
-	draw();
+	if (firstRun) {
+		setupPlayer();
+		draw();
+		firstRun = false;
+	}
 }
 
 function turtledraw(t, cmds) {
@@ -306,10 +332,9 @@ let armRegenerate = false;
 let armRegenerateIndex = 0;
 
 function draw() {
-	requestAnimationFrame(draw);
-
 	// clear scene
-	scene.remove.apply(scene, scene.children);
+	//scene.remove.apply(scene, scene.children);
+	clearScene(scene);
 
 	for (let i=0; i<pop.length; i++) {	
 		let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, 0.1, 0), Math.PI/4);
@@ -338,10 +363,12 @@ function draw() {
 	//console.log("!!! " + rotateStart.x + ", " + rotateStart.y + " | " + rotateEnd.x + ", " + rotateEnd.y + " | " + rotateDelta.x + ", " + rotateDelta.y);
 
 	composer.render();
+
+	requestAnimationFrame(draw);
 }
 
 window.addEventListener("keydown", function(event) {
-	if (util.getKeyCode(event) === ' ')	regenerate(parseInt(Math.random() * pop.length));	    
+	if (util.getKeyCode(event) === ' ')	reset(); //regenerate(parseInt(Math.random() * pop.length));	    
 });
 
 window.onload = reset;
