@@ -100,7 +100,7 @@ scene.background = new THREE.Color("#000000");
 
 const meshLineWidth = 0.6;
 const meshLineOpacity = 0.1;
-const meshLineResolution = 0.1;
+const meshLineResolution = 1;
 
 function clearScene(obj) {
 	while (obj.children.length > 0) { 
@@ -194,7 +194,7 @@ let lexicon = "FfXxYyZz<>(.".split("");
 let pop = [];
 const pop_size = 25;
 const mutability = 0.5;
-const numCmds = 50;
+const numCmds = 40;
 const angleChange = 1.5;
 let firstRun = true;
 
@@ -293,7 +293,11 @@ class Child {
 			newLine = new THREE.Mesh(geo.geometry, mat3);
 		} else {
 			if (Math.random() < 0.2) {
-				newLine = new THREE.Mesh(geo.geometry, mat2);
+				if (armRedmat) {
+					newLine = new THREE.Mesh(geo.geometry, mat3);
+				} else {
+					newLine = new THREE.Mesh(geo.geometry, mat2);
+				}
 			} else {
 				newLine = new THREE.Mesh(geo.geometry, mat1);
 			}
@@ -335,6 +339,7 @@ function regenerate(chosen) {
 }
 
 let armRegenerate = false;
+let armRedmat = false;
 let armRegenerateIndex = 0;
 
 function draw() {
@@ -352,6 +357,7 @@ function draw() {
 			console.log("Selected " + i);
 			armRegenerateIndex = i;
 			armRegenerate = true;
+			armRedmat = true;
 			renderer.toneMappingExposure = exposureHigh;
 		}
 	}
@@ -362,8 +368,14 @@ function draw() {
 		setTimeout(function() {
 			regenerate(armRegenerateIndex);
 			armRegenerate = false;		
-			renderer.toneMappingExposure = exposureLow;			
 		}, 200);
+	}
+
+	if (armRedmat) {
+		setTimeout(function() {
+			renderer.toneMappingExposure = exposureLow;			
+			armRedmat = false;		
+		}, 600);
 	}
 
 	//console.log("!!! " + rotateStart.x + ", " + rotateStart.y + " | " + rotateEnd.x + ", " + rotateEnd.y + " | " + rotateDelta.x + ", " + rotateDelta.y);
