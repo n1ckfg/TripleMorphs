@@ -195,7 +195,7 @@ let pop = [];
 const pop_size = 25;
 const mutability = 0.5;
 const numCmds = 50;
-
+const angleChange = 1.5;
 let firstRun = true;
 
 function reset() {
@@ -248,9 +248,9 @@ function turtledraw(t, cmds) {
 			// rotate -z:
 			t.dir.applyAxisAngle(axisZ, -t.angle * Math.sin(now));
 		} else if (cmd == "<") {
-			t.angle *= 2;
+			t.angle *= angleChange;
 		} else if (cmd == ">") {
-			t.angle /= 2;
+			t.angle /= angleChange;
 		} else if (cmd == "(") {
 			// spawn a copy of the turtle:
 			let t1 = new Turtle(t.pos.clone(), t.dir.clone(), -t.angle);
@@ -282,6 +282,7 @@ class Child {
 			point.x += (this.pos.x * globalScale) + globalOffset.x;
 			point.y += (this.pos.y * globalScale) + globalOffset.y;
 			point.z += (this.pos.z * globalScale) + globalOffset.z;
+			point.y *= -1;
 		}
 		let geoBuffer = new THREE.BufferGeometry().setFromPoints(points);
 		let geo = new MeshLine();
