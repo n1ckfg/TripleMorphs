@@ -166,6 +166,8 @@ const triggerDistance = 35;
 movingSpeedMax = 1.3;
 movingDelta = 0.03;
 
+let now = 0;
+
 // ~ ~ ~ 
 const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
 bloomPass.threshold = 0;
@@ -211,7 +213,7 @@ function reset() {
 
 function turtledraw(t, cmds) {
 	let lines = [];
-	let now = clock.getElapsedTime() / globalSpeedFactor;
+	now = clock.getElapsedTime() / globalSpeedFactor;
 	let turtleStep = 0.5;
 
 	for (let i=0; i<cmds.length; i++) {
@@ -269,9 +271,12 @@ class Child {
 		let y = Math.random() - 0.5;
 		let z = Math.random() - 0.5;
 		this.pos = new THREE.Vector3(x, y, z/2).multiplyScalar(globalSpread);
+		this.randomDrift = 500 + (Math.random() * 500);
 	}
 
 	draw(points) {
+		this.pos.y += Math.sin(now*10) / this.randomDrift;
+
 		for (let point of points) {
 			point.multiplyScalar(globalScale);
 			point.x += (this.pos.x * globalScale) + globalOffset.x;
