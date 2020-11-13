@@ -24,7 +24,7 @@ document.body.appendChild(renderer.domElement);
 const cameraFov = 60;
 const cameraAspect = window.innerWidth / window.innerHeight;
 const cameraNear = 1;
-const cameraFar = 500;
+const cameraFar = 1000;
 
 const camera = new THREE.PerspectiveCamera(cameraFov, cameraAspect, cameraNear, cameraFar);
 let phi = 0;
@@ -131,9 +131,9 @@ const mat2 = createMat(0xffffaa, meshLineOpacity, meshLineWidth);
 const mat3 = createMat(0xff1111, meshLineOpacity, meshLineWidth);
 
 const globalScale = 50;
-const globalOffset = new THREE.Vector3(-125, -160, -350); //(-150, -190, -350);
-const globalAxisOdds = 0.001;
+const globalOffset = new THREE.Vector3(-20, -60, -350); 
 const globalSpeedFactor = 4;
+const globalSpread = 7;
 
 const axisX = new THREE.Vector3(1, 0, 0);
 const axisY = new THREE.Vector3(0, 1, 0);
@@ -155,38 +155,12 @@ const renderPass = new THREE.RenderPass(scene, camera);
 const composer = new THREE.EffectComposer(renderer);
 composer.addPass(renderPass);
 composer.addPass(bloomPass);
-// ~ ~ ~ 
 
 function resetCameraPosition() {
 	camera.position.set(0, 0, 0);
 	camera.lookAt(0, 0, 0);
 	phi = 0;
 	theta = 0;
-}
-
-function drawLine(points, row, col) {
-	for (let point of points) {
-		point.multiplyScalar(globalScale);
-		point.x += (row * globalScale) + globalOffset.x;
-		point.y += (col * globalScale) + globalOffset.y;
-		point.z += globalOffset.z;
-	}
-	let geoBuffer = new THREE.BufferGeometry().setFromPoints(points);
-	let geo = new MeshLine();
-	geo.setGeometry(geoBuffer);
-
-	let newLine;
-	if (armRegenerate) {
-		newLine = new THREE.Mesh(geo.geometry, mat3);
-	} else {
-		if (Math.random() < 0.2) {
-			newLine = new THREE.Mesh(geo.geometry, mat2);
-		} else {
-			newLine = new THREE.Mesh(geo.geometry, mat1);
-		}
-	}
-
-	scene.add(newLine);
 }
 
 // ~ ~ ~ ~ ~ ~ ~ ~ ~
@@ -198,27 +172,10 @@ const pop_size = 25;
 const mutability = 0.5;
 const numCmds = 50;
 
-// get number of columns/rows from population size:
-let cols = Math.ceil(Math.sqrt(pop_size));
-let rows = cols;
-
-let cmds;
-
-function create(size) {
-	let geno = [];
-	for (let i=0; i<size; i++) {
-		geno.push(lexicon[parseInt(Math.random() * lexicon.length)]);	
-	}
-	return geno;
-}
-
 function reset() {
 	pop = [];
 	for (let i=0; i<pop_size; i++) {
-		pop[i] = {
-			cmds: create(numCmds),
-		}
-		//write(pop[i].cmds.join(""))
+		pop.push(new Child());
 	}
 
 	setupPlayer();
@@ -281,8 +238,44 @@ function turtledraw(t, cmds) {
 class Child {
 
 	constructor() {
-		this.cmds = [];
-		this.pos = new THREE.Vector3(0,0,0);
+		this.cmds = this.createCmds(numCmds);
+		let x = Math.random() - 0.5;
+		let y = Math.random() - 0.5;
+		let z = Math.random() - 0.5;
+		this.pos = new THREE.Vector3(x, y, z/2).multiplyScalar(globalSpread);
+	}
+
+	draw(points) {
+		for (let point of points) {
+			point.multiplyScalar(globalScale);
+			point.x += (this.pos.x * globalScale) + globalOffset.x;
+			point.y += (this.pos.y * globalScale) + globalOffset.y;
+			point.z += (this.pos.z * globalScale) + globalOffset.z;
+		}
+		let geoBuffer = new THREE.BufferGeometry().setFromPoints(points);
+		let geo = new MeshLine();
+		geo.setGeometry(geoBuffer);
+
+		let newLine;
+		if (armRegenerate) {
+			newLine = new THREE.Mesh(geo.geometry, mat3);
+		} else {
+			if (Math.random() < 0.2) {
+				newLine = new THREE.Mesh(geo.geometry, mat2);
+			} else {
+				newLine = new THREE.Mesh(geo.geometry, mat1);
+			}
+		}
+
+		scene.add(newLine);
+	}
+
+	createCmds(size) {
+		let geno = [];
+		for (let i=0; i<size; i++) {
+			geno.push(lexicon[parseInt(Math.random() * lexicon.length)]);	
+		}
+		return geno;
 	}
 
 }
@@ -301,7 +294,8 @@ function regenerate(chosen) {
 				child.cmds[j] = parent.cmds[j];
 			}
 		}
-		newpop[i] = child;
+
+		newpop.push(child);
 	}
 	pop = newpop;
 
@@ -317,17 +311,11 @@ function draw() {
 	// clear scene
 	scene.remove.apply(scene, scene.children);
 
-	for (let i=0; i<pop.length; i++) {
-		// get row/col from population index `i`
-		let row = Math.floor(i/cols);
-		let col = i % cols;
-		//draw2D.push().scale(1/cols).translate(row, col)
-		
-		//let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, -0.1, 0), Math.PI/4);
+	for (let i=0; i<pop.length; i++) {	
 		let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, 0.1, 0), Math.PI/4);
 
 		let lines = turtledraw(turtle, pop[i].cmds);
-		drawLine(lines, row, col);
+		pop[i].draw(lines);
 		
 		if (!armRegenerate && lines[0].distanceTo(camera.position) < triggerDistance) {
 			console.log("Selected " + i);
@@ -335,7 +323,6 @@ function draw() {
 			armRegenerate = true;
 			renderer.toneMappingExposure = exposureHigh;
 		}
-		//draw2D.pop()
 	}
 
 	updatePlayer();
@@ -352,20 +339,6 @@ function draw() {
 
 	composer.render();
 }
-
-/*
-function mouse(kind, pt) {
-	if (kind == "down") {
-		// scale point up to grid size:
-		let col = Math.floor(pt[0] * cols);
-		let row = Math.floor(pt[1] * cols);
-		let index = row + col*cols;
-
-		// now create a new generation with `pop[index]`...
-		regenerate(index);
-	}
-}
-*/
 
 window.addEventListener("keydown", function(event) {
 	if (util.getKeyCode(event) === ' ')	regenerate(parseInt(Math.random() * pop.length));	    
