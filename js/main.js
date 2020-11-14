@@ -211,58 +211,6 @@ function reset() {
 	}
 }
 
-function turtledraw(t, cmds) {
-	let lines = [];
-	now = clock.getElapsedTime() / globalSpeedFactor;
-	let turtleStep = 0.5;
-
-	for (let i=0; i<cmds.length; i++) {
-		let cmd = cmds[i];
-		
-		if (cmd == "F") {
-			// move forward, drawing a line:
-			lines.push(t.pos.clone());  
-			t.pos.add(t.dir); // move
-			lines.push(t.pos.clone());
-		} else if (cmd == "f") {
-			// move forward, drawing a line:
-			lines.push(t.pos.clone());  
-			t.pos.add(t.dir.clone().multiplyScalar(turtleStep));//0.5)); // move
-			lines.push(t.pos.clone());
-		} else if (cmd == "X") {
-			// rotate +x:
-			t.dir.applyAxisAngle(axisX, t.angle * Math.sin(now));
-		} else if (cmd == "x") {
-			// rotate -x:
-			t.dir.applyAxisAngle(axisX, -t.angle * Math.sin(now));
-		} else if (cmd == "Y") {
-			// rotate +y:
-			t.dir.applyAxisAngle(axisY, t.angle * Math.sin(now));
-		} else if (cmd == "y") {
-			// rotate -y:
-			t.dir.applyAxisAngle(axisY, -t.angle * Math.sin(now));
-		} else if (cmd == "Z") {
-			// rotate +z:
-			t.dir.applyAxisAngle(axisZ, t.angle * Math.sin(now));
-		} else if (cmd == "z") {
-			// rotate -z:
-			t.dir.applyAxisAngle(axisZ, -t.angle * Math.sin(now));
-		} else if (cmd == "<") {
-			t.angle *= angleChange;
-		} else if (cmd == ">") {
-			t.angle /= angleChange;
-		} else if (cmd == "(") {
-			// spawn a copy of the turtle:
-			let t1 = new Turtle(t.pos.clone(), t.dir.clone(), -t.angle);
-
-			let morelines = turtledraw(t1, cmds.slice(i+1));
-			lines = lines.concat(morelines);
-		}
-	}
-
-	return lines;
-}
-
 class Child {
 
 	constructor() {
@@ -272,19 +220,24 @@ class Child {
 		let z = Math.random() - 0.5;
 		this.pos = new THREE.Vector3(x, y, z/2).multiplyScalar(globalSpread);
 		this.randomDrift = 500 + (Math.random() * 500);
+		this.points = [];
 	}
 
-	draw(points) {
+	draw() {
+		let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, 0.1, 0), Math.PI/4);
+
+		this.points = this.turtledraw(turtle, this.cmds);
+
 		this.pos.y += Math.sin(now*10) / this.randomDrift;
 
-		for (let point of points) {
+		for (let point of this.points) {
 			point.multiplyScalar(globalScale);
 			point.x += (this.pos.x * globalScale) + globalOffset.x;
 			point.y += (this.pos.y * globalScale) + globalOffset.y;
 			point.z += (this.pos.z * globalScale) + globalOffset.z;
 			point.y *= -1;
 		}
-		let geoBuffer = new THREE.BufferGeometry().setFromPoints(points);
+		let geoBuffer = new THREE.BufferGeometry().setFromPoints(this.points);
 		let geo = new MeshLine();
 		geo.setGeometry(geoBuffer);
 
@@ -312,6 +265,58 @@ class Child {
 			geno.push(lexicon[parseInt(Math.random() * lexicon.length)]);	
 		}
 		return geno;
+	}
+
+	turtledraw(t, cmds) {
+		let lines = [];
+		now = clock.getElapsedTime() / globalSpeedFactor;
+		let turtleStep = 0.5;
+
+		for (let i=0; i<cmds.length; i++) {
+			let cmd = cmds[i];
+			
+			if (cmd == "F") {
+				// move forward, drawing a line:
+				lines.push(t.pos.clone());  
+				t.pos.add(t.dir); // move
+				lines.push(t.pos.clone());
+			} else if (cmd == "f") {
+				// move forward, drawing a line:
+				lines.push(t.pos.clone());  
+				t.pos.add(t.dir.clone().multiplyScalar(turtleStep));//0.5)); // move
+				lines.push(t.pos.clone());
+			} else if (cmd == "X") {
+				// rotate +x:
+				t.dir.applyAxisAngle(axisX, t.angle * Math.sin(now));
+			} else if (cmd == "x") {
+				// rotate -x:
+				t.dir.applyAxisAngle(axisX, -t.angle * Math.sin(now));
+			} else if (cmd == "Y") {
+				// rotate +y:
+				t.dir.applyAxisAngle(axisY, t.angle * Math.sin(now));
+			} else if (cmd == "y") {
+				// rotate -y:
+				t.dir.applyAxisAngle(axisY, -t.angle * Math.sin(now));
+			} else if (cmd == "Z") {
+				// rotate +z:
+				t.dir.applyAxisAngle(axisZ, t.angle * Math.sin(now));
+			} else if (cmd == "z") {
+				// rotate -z:
+				t.dir.applyAxisAngle(axisZ, -t.angle * Math.sin(now));
+			} else if (cmd == "<") {
+				t.angle *= angleChange;
+			} else if (cmd == ">") {
+				t.angle /= angleChange;
+			} else if (cmd == "(") {
+				// spawn a copy of the turtle:
+				let t1 = new Turtle(t.pos.clone(), t.dir.clone(), -t.angle);
+
+				let morelines = this.turtledraw(t1, cmds.slice(i+1));
+				lines = lines.concat(morelines);
+			}
+		}
+
+		return lines;
 	}
 
 }
@@ -348,12 +353,9 @@ function draw() {
 	clearScene(scene);
 
 	for (let i=0; i<pop.length; i++) {	
-		let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, 0.1, 0), Math.PI/4);
-
-		let lines = turtledraw(turtle, pop[i].cmds);
-		pop[i].draw(lines);
+		pop[i].draw();
 		
-		if (!armRegenerate && lines[0].distanceTo(camera.position) < triggerDistance) {
+		if (!armRegenerate && pop[i].points[0].distanceTo(camera.position) < triggerDistance) {
 			console.log("Selected " + i);
 			armRegenerateIndex = i;
 			armRegenerate = true;
