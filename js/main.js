@@ -197,6 +197,7 @@ const mutability = 0.5;
 const numCmds = 50;
 const angleChange = 1.5;
 let firstRun = true;
+const maxComplexity = 200;
 
 function reset() {
 	pop = [];
@@ -221,42 +222,50 @@ class Child {
 		this.pos = new THREE.Vector3(x, y, z/2).multiplyScalar(globalSpread);
 		this.randomDrift = 500 + (Math.random() * 500);
 		this.points = [];
+		this.geo = new MeshLine();
+		this.geoBuffer = new THREE.BufferGeometry();
+		this.newLine;
 	}
 
 	draw() {
 		let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, 0.1, 0), Math.PI/4);
 
-		this.points = this.turtledraw(turtle, this.cmds);
+		this.points = [];
+		let newPoints = this.turtledraw(turtle, this.cmds);
 
 		this.pos.y += Math.sin(now*10) / this.randomDrift;
 
-		for (let point of this.points) {
-			point.multiplyScalar(globalScale);
-			point.x += (this.pos.x * globalScale) + globalOffset.x;
-			point.y += (this.pos.y * globalScale) + globalOffset.y;
-			point.z += (this.pos.z * globalScale) + globalOffset.z;
-			point.y *= -1;
+		for (let point of newPoints) {
+			if (this.points.length < maxComplexity) {
+				point.multiplyScalar(globalScale);
+				point.x += (this.pos.x * globalScale) + globalOffset.x;
+				point.y += (this.pos.y * globalScale) + globalOffset.y;
+				point.z += (this.pos.z * globalScale) + globalOffset.z;
+				point.y *= -1;
+				this.points.push(point);
+			} else {
+				break;
+			}
 		}
-		let geoBuffer = new THREE.BufferGeometry().setFromPoints(this.points);
-		let geo = new MeshLine();
-		geo.setGeometry(geoBuffer);
+		this.geoBuffer.setFromPoints(this.points);
+		this.geo.setGeometry(this.geoBuffer);
 
-		let newLine;
+		//let newLine;
 		if (armRegenerate) {
-			newLine = new THREE.Mesh(geo.geometry, mat3);
+			this.newLine = new THREE.Mesh(this.geo.geometry, mat3);
 		} else {
 			if (Math.random() < 0.2) {
 				if (armRedmat) {
-					newLine = new THREE.Mesh(geo.geometry, mat3);
+					this.newLine = new THREE.Mesh(this.geo.geometry, mat3);
 				} else {
-					newLine = new THREE.Mesh(geo.geometry, mat2);
+					this.newLine = new THREE.Mesh(this.geo.geometry, mat2);
 				}
 			} else {
-				newLine = new THREE.Mesh(geo.geometry, mat1);
+				this.newLine = new THREE.Mesh(this.geo.geometry, mat1);
 			}
 		}
 
-		scene.add(newLine);
+		scene.add(this.newLine);
 	}
 
 	createCmds(size) {
@@ -348,8 +357,6 @@ let armRedmat = false;
 let armRegenerateIndex = 0;
 
 function draw() {
-	// clear scene
-	//scene.remove.apply(scene, scene.children);
 	clearScene(scene);
 
 	for (let i=0; i<pop.length; i++) {	
