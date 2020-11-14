@@ -195,9 +195,9 @@ let pop = [];
 const pop_size = 25;
 const mutability = 0.5;
 const numCmds = 50;
-const angleChange = 1.5;
+const angleChange = 1.25;
 let firstRun = true;
-const maxComplexity = 200;
+const maxComplexity = 400;
 
 function reset() {
 	pop = [];
@@ -230,22 +230,16 @@ class Child {
 	draw() {
 		let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, 0.1, 0), Math.PI/4);
 
-		this.points = [];
-		let newPoints = this.turtledraw(turtle, this.cmds);
+		this.points = this.turtledraw(turtle, this.cmds);
 
 		this.pos.y += Math.sin(now*10) / this.randomDrift;
 
-		for (let point of newPoints) {
-			if (this.points.length < maxComplexity) {
-				point.multiplyScalar(globalScale);
-				point.x += (this.pos.x * globalScale) + globalOffset.x;
-				point.y += (this.pos.y * globalScale) + globalOffset.y;
-				point.z += (this.pos.z * globalScale) + globalOffset.z;
-				point.y *= -1;
-				this.points.push(point);
-			} else {
-				break;
-			}
+		for (let point of this.points) {
+			point.multiplyScalar(globalScale);
+			point.x += (this.pos.x * globalScale) + globalOffset.x;
+			point.y += (this.pos.y * globalScale) + globalOffset.y;
+			point.z += (this.pos.z * globalScale) + globalOffset.z;
+			point.y *= -1;
 		}
 		this.geoBuffer.setFromPoints(this.points);
 		this.geo.setGeometry(this.geoBuffer);
@@ -325,6 +319,8 @@ class Child {
 			}
 		}
 
+		if (lines.length > maxComplexity) lines.length = maxComplexity;
+
 		return lines;
 	}
 
@@ -360,14 +356,18 @@ function draw() {
 	clearScene(scene);
 
 	for (let i=0; i<pop.length; i++) {	
-		pop[i].draw();
+		try {
+			pop[i].draw();
 		
-		if (!armRegenerate && pop[i].points[0].distanceTo(camera.position) < triggerDistance) {
-			console.log("Selected " + i);
-			armRegenerateIndex = i;
-			armRegenerate = true;
-			armRedmat = true;
-			renderer.toneMappingExposure = exposureHigh;
+			if (!armRegenerate && pop[i].points[0].distanceTo(camera.position) < triggerDistance) {
+				console.log("Selected " + i);
+				armRegenerateIndex = i;
+				armRegenerate = true;
+				armRedmat = true;
+				renderer.toneMappingExposure = exposureHigh;
+			}
+		} catch (e) { 
+			console.log(e);
 		}
 	}
 
