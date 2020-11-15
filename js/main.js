@@ -152,8 +152,8 @@ const mat1 = createMat(0xaaffff, meshLineOpacity, meshLineWidth);
 const mat2 = createMat(0xffffaa, meshLineOpacity, meshLineWidth);
 const mat3 = createMat(0xff1111, meshLineOpacity, meshLineWidth);
 
-const globalScale = 50;
-const globalOffset = new THREE.Vector3(-20, -60, -350); 
+const globalScale = new THREE.Vector3(50, -50, 50);
+const globalOffset = new THREE.Vector3(-20, 60, -350); 
 const globalSpeedFactor = 4;
 const globalSpread = 7;
 
@@ -219,7 +219,7 @@ class Child {
 		let x = Math.random() - 0.5;
 		let y = Math.random() - 0.5;
 		let z = Math.random() - 0.5;
-		this.pos = new THREE.Vector3(x, y, z/2).multiplyScalar(globalSpread);
+		this.pos = new THREE.Vector3(x, y, z/2).multiplyScalar(globalSpread).multiply(globalScale);
 		this.randomDrift = 500 + (Math.random() * 500);
 		this.points = [];
 		this.geo = new MeshLine();
@@ -233,13 +233,9 @@ class Child {
 		this.points = this.turtledraw(turtle, this.cmds);
 
 		this.pos.y += Math.sin(now*10) / this.randomDrift;
-
+	
 		for (let point of this.points) {
-			point.multiplyScalar(globalScale);
-			point.x += (this.pos.x * globalScale) + globalOffset.x;
-			point.y += (this.pos.y * globalScale) + globalOffset.y;
-			point.z += (this.pos.z * globalScale) + globalOffset.z;
-			point.y *= -1;
+			point.multiply(globalScale).add(this.pos).add(globalOffset);
 		}
 		this.geoBuffer.setFromPoints(this.points);
 		this.geo.setGeometry(this.geoBuffer);
