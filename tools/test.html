@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+	
+	<head>
+		<title>Biomorphs</title>
+		<style>
+			body {
+				background: gray;
+			}
+		</style>
+		<script src="https://fox-gieg.com/js/libraries/p5js/1.1.9/p5.min.js"></script>
+		<script src="../js/brain.js"></script>
+	</head>
+
+	<body>
+		<script>
+			"use strict";
+
+			const numCritters = 20;
+			let critters = [];
+
+			function setup() {
+				createCanvas(800, 600);
+
+				for (let i=0; i<numCritters; i++) {
+					critters.push(new Critter());
+				}
+			}
+
+			function draw() {
+				background(0);
+
+				for (let critter of critters) {
+					critter.run();
+				}
+			}
+
+			class Critter {
+
+				constructor() {
+					this.brain = new Brain();
+					this.pos = createVector(random(width), random(height));
+					this.velRange = 1;
+					this.vel = createVector(random(this.velRange), random(this.velRange));
+					this.size = 20;
+				}
+
+				update() {
+			        this.inputs[0] = this.size / (this.size + rel.dot(rel));
+			        // relative angle ordinarily runs -pi...pi
+			        // we can take the cosine of the angle to get -1..1
+			        // then scale this to 0..1:
+			        this.inputs[1] = Math.cos(rel.angle()) * 0.5 + 0.5; 
+			        
+			        // 3rd input tells us whether we are closer to the head or the tail:
+			        let distance2 = n.head.distance(a.head)
+			        this.inputs[2] = distance2 < distance ? 0 : 1;
+
+					this.brain.update();
+				    let speed = this.brain.outputs[0];
+				    let angle = this.brain.outputs[1] - this.brain.outputs[2];
+				    //this.vel.rotate(angle);
+				    this.pos.add(this.vel * speed);
+				}
+
+				draw() {
+					ellipse(this.pos.x,this.pos.y,this.size,this.size);
+				}
+
+				run() {
+					this.update();
+					this.draw();
+				}
+
+			}
+		</script>
+	</body>
+
+</html>

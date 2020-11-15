@@ -62,24 +62,22 @@ class Brain {
 		return activations;
 	}
 
-	activate(a, inputVector) {
-		let nn = a.nn;
-		let activations = a.activations;
-		activations[0] = inputVector;
+	activate(inputVector) {
+		this.activations[0] = inputVector;
 		let w = 0; // index into the weights list
-		let inputs = activations[0];
+		let inputs = this.activations[0];
 		let outputs;
 		for (let l = 0; l < this.L; l++) {
 			// we will activate layer l+1 by the values in layer l:
-			outputs = activations[l + 1];
+			outputs = this.activations[l + 1];
 			// iterate over neurons in the layer:
 			for (let n = 0; n < this.N; n++) {
 				// start with bias term:
-				let sum = nn[w++];
+				let sum = this.nn[w++];
 				// add the weighted inputs:
 				for (let i = 0; i < this.N; i++) {
 					// use the next weight from the NN:
-					sum += inputs[i] * nn[w++];
+					sum += inputs[i] * this.nn[w++];
 				}
 				// apply activation function:
 				outputs[n] = this.sigmoid(sum);
@@ -88,6 +86,23 @@ class Brain {
 			inputs = outputs;
 		}
 		return outputs;
+	}
+
+	setInputs(input0, input1, input2) {
+		this.inputs[0] = input0;
+		this.inputs[1] = input1;
+		this.inputs[2] = input2;
+		return this.inputs;
+	}
+
+	getOutputs() {
+		this.outputs = this.activate(this.inputs);
+		return this.outputs;
+	}
+
+	update(input0, input1, input2) {
+		this.setInputs(input0, input1, input2);
+		this.getOutputs();
 	}
 
 }
