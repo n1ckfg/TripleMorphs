@@ -225,6 +225,7 @@ class Child {
 		this.geo = new MeshLine();
 		this.geoBuffer = new THREE.BufferGeometry();
 		this.newLine;
+		this.brain = new Brain();
 	}
 
 	draw() {
