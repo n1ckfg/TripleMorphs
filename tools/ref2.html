@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html>
+	
+	<head>
+		<title>Biomorphs</title>
+		<script src="https://fox-gieg.com/js/libraries/alife/alife.js" defer></script>
+	</head>
+
+	<body>
+		<script>
+			"use strict";
+			
+			let pop = [];
+			let pop_size = 200;
+			let creature_size = 1/100
+			let SPEED_MAX = creature_size*10;
+
+			let N = 3
+			let L = 3
+			// N+1 (to include bias) weights per neuron per layer:
+			let NUMWEIGHTS = (N + 1) * N * L; 
+			let MAXW = 10
+
+			let gamesteps = 0
+			let MAX_STEPS = 500
+
+			let mutability = 5
+			let elitism = 1/10
+			let randomized = 1/20
+
+			function sigmoid(x) {
+			  return 1 / (1 + Math.exp(-x));
+			}
+
+			function srandom() {
+			  return (Math.random() - 0.5) * 2;
+			}
+
+			function randomGene() {
+			  return random(MAXW*2)-MAXW;
+			}
+
+			function createNN() {
+			  let NUMWEIGHTS = (N + 1) * N * L; 
+			  let w = []
+			  for (let i=0; i<NUMWEIGHTS; i++) {
+			    w[i] = randomGene()
+			  }
+			  return w;
+			}
+
+			function createActivations() {
+			  let activations = []
+			  for (let l = 0; l < L+1; l++) {
+			    let layer = []
+			    // iterate over neurons in the layer:
+			    for (let n = 0; n < N; n++) {
+			      layer[n] = 0
+			    }
+			    activations[l] = layer;
+			  }
+			  return activations;
+			}
+
+			function activate(a, inputVector) {
+			  let nn = a.nn
+			  let activations = a.activations
+			  activations[0] = inputVector
+			  let w = 0; // index into the weights list
+			  let inputs = activations[0]
+			  let outputs
+			  for (let l = 0; l < L; l++) {
+			    // we will activate layer l+1 by the values in layer l:
+			    outputs = activations[l + 1];
+			    // iterate over neurons in the layer:
+			    for (let n = 0; n < N; n++) {
+			      // start with bias term:
+			      let sum = nn[w++];
+			      // add the weighted inputs:
+			      for (let i = 0; i < N; i++) {
+			        // use the next weight from the NN:
+			        sum += inputs[i] * nn[w++];
+			      }
+			      // apply activation function:
+			      outputs[n] = sigmoid(sum);
+			    }
+			    // outputs becomes inputs of next round:
+			    inputs = outputs
+			  }
+			  return outputs
+			}
+
+			function make_agent() {
+			  let a = {
+			      head: new vec2(random(), random()),
+			      tail: new vec2(),
+			      vel: vec2.random(0.001),
+			      size: creature_size,
+			      hue: random(),
+			      
+			      inputs: [0, 0, 0],
+			      outputs: [0, 0, 0],
+			      
+			      nn: createNN(),
+			      activations: createActivations(),
+			      
+			      playing: true,
+			      age: 0,
+			      points: 0,
+			    };
+			    a.tail = a.head.clone();
+			  return a;
+			}
+
+			function reset() {
+			  gamesteps = 0
+			  
+			  let newpop = []
+			  for (let i = 0; i < pop_size; i++) {
+			    let a = make_agent()
+			    newpop.push(a);
+			    
+			    if ((1-i/pop_size) < randomized) continue;
+			    
+			    // copy a random parent:
+			    if (pop.length) {
+			      let parent = pop[ random(Math.min(i,pop.length)) ];
+
+			      a.nn = parent.nn.slice(0)
+			      a.hue = parent.hue + srandom() * 0.05
+			      
+			      if (i/pop_size < elitism) continue;
+			      
+			      for (let j=0; j<a.nn.length; j++) {
+			        if (random() < mutability/a.nn.length) {
+			          a.nn[j] += random(5)-2
+			        } 
+			      }
+			    }
+			  }
+			  pop = newpop
+			}
+
+			let playing = 0
+			function update(dt) {
+			  gamesteps++;
+			  
+			  // TAG:
+			  playing = 0
+			  for (let a of pop) {
+			    a.age++;
+			    if (!a.playing) continue;
+			    
+			    playing++;
+			    
+			    let nearest_head
+			    let nearest_head_dist
+			    for (let n of pop) {
+			      if (a == n) continue;
+			      if (!n.playing) continue;
+
+			      // did neighbour eat my tail?
+			      let dist = n.head.clone().sub(a.tail).len() - n.size / 2;
+			      if (dist <= 0) {
+			        a.playing = false;
+			        // gain 1 point for tagging
+			        // plus half of the points of what was tagged
+			        n.points += 1;
+			        break;
+			      } else {
+			        if (!nearest_head || dist < nearest_head_dist) {
+			          nearest_head = n;
+			          nearest_head_dist = dist;
+			        } 
+			      }
+			    }
+			  }
+
+			  if (playing <= 1 || gamesteps > MAX_STEPS) {
+			    reset();
+			  }
+
+			  // MOVE:
+			  for (let a of pop) {
+			    if (!a.playing) continue;
+			    
+			    // randomwalk:
+			    let speed = a.outputs[0];
+			    let angle = a.outputs[1] - a.outputs[2];
+			    a.vel.rotate(angle);
+			    a.head.add(a.vel.clone().len(speed * SPEED_MAX * dt)).wrap();
+
+			    // desired tail location is tailsize units behind head
+			    // get current head->tail relative vector;
+			    // wrap it in -0.5,0.5 (to deal with agents crossing world boundaries)
+			    // scale it to the tailsize
+			    // add it to the head position:
+			    let tailsize = a.size;
+			    a.tail = a.head
+			      .clone()
+			      .add(a.tail.sub(a.head).relativewrap().len(tailsize));
+			  }
+
+			  // SENSE:
+			  for (let a of pop) {
+			    if (!a.playing) continue;
+			    
+			    // sense:
+			    let mindist = 2
+			    for (let n of pop) {
+			      if (a == n) continue;
+			      if (!n.playing) continue;
+			      
+			      // get relative vector from my head to its tail:
+			      let rel = n.tail
+			        .clone()
+			        .sub(a.head)
+			        .relativewrap()
+			        .rotate(-a.vel.angle());
+			      let distance = rel.len();
+			      // TODO: could also limit relative angle here
+			      if (distance < mindist) {
+			        mindist = distance;
+			        
+			        // update sensors, which should range from 0..1
+			        
+			        // for distance we'd like intensity to be highest when near, lowest when far; a 1/distance-squared is good; 
+			        // and made relative to our size:
+			        a.inputs[0] = a.size / (a.size + rel.dot(rel));
+			        // relative angle ordinarily runs -pi...pi
+			        // we can take the cosine of the angle to get -1..1
+			        // then scale this to 0..1:
+			        a.inputs[1] = Math.cos(rel.angle())*0.5+0.5; 
+			        
+			        // 3rd input tells us whether we are closer to the head or the tail:
+			        let distance2 = n.head.distance(a.head)
+			        a.inputs[2] = distance2 < distance ? 0 : 1;
+			                
+			        // store relative vector here for sake of visualization later
+			        a.rel = rel;
+			      }
+			    }
+			  }
+			  
+			  // THINK:
+			  for (let a of pop) {
+			    if (!a.playing) continue;
+			    
+			    // somehow map a.inputs to a.outputs 
+			    //a.outputs = [random(), random()]
+			    
+			    a.outputs = activate(a, a.inputs);
+			    
+			    // a.outputs[0] = outs[0]
+			    // a.outputs[1] = srandom()*outs[1]
+			  }
+			  
+			  // RATE:
+			  
+			  write(gamesteps, playing)
+			  pop = pop.sort((a,b)=>{
+			    return b.points - a.points
+			    //return b.points/b.age - a.points/a.age
+			  });
+			  for (let a of pop) {
+			    write(a.points, a.playing) 
+			    //write(a.points, a.playing, a.activations[a.activations.length-1])
+			    //write(a.points, a.playing, a.activations[0])//a.nn) 
+			  }
+			}
+
+			function draw() {
+			  // timer:
+			  let t = gamesteps/MAX_STEPS
+			  draw2D.color(0.25)
+			  draw2D.line([t,0], [t,1])
+			  
+			  // highlight best scorer;
+			  if (pop[0].playing) draw2D.circle(pop[0].head, 0.1)
+			  
+			  // draw senses:
+			  for (let a of pop) {
+			    if (!a.playing) continue;
+			    
+			    draw2D.push().translate(a.head).rotate(a.vel).rotate(a.rel);
+			    {
+			      draw2D.color(a.inputs[0])
+			      draw2D.line([a.rel.len(), 0]);
+			    }
+			    draw2D.pop();
+			  }
+			  
+			  for (let a of pop) {
+			    if (!a.playing) continue;
+			    
+			    // draw tail
+			    draw2D.push().translate(a.tail).rotate(a.vel).scale(a.size);
+			    {
+			      draw2D.color(0.3);
+			      draw2D.circle();
+			      draw2D.color(0.7);
+			      draw2D.circle(a.points/pop_size);
+			    }
+			    draw2D.pop();
+
+			    // draw head
+			    draw2D.push().translate(a.head).rotate(a.vel).scale(a.size);
+			    {
+			      draw2D.hsl(a.hue);
+			      draw2D.circle();
+			      draw2D.color(a.hue);
+			      draw2D.circle([0.2, 0.2], 0.2);
+			      draw2D.circle([0.2, -0.2], 0.2);
+			    }
+			    draw2D.pop();
+			  }
+			}
+
+		</script>
+	</body>
+
+</html>
