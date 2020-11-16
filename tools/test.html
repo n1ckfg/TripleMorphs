@@ -40,7 +40,7 @@
 				constructor() {
 					this.brain = new Brain();
 					this.pos = createVector(random(width), random(height));
-					this.velRange = 10;
+					this.velRange = 2; 
 					this.vel = createVector(random(this.velRange), random(this.velRange));
 					this.size = 20;
 					this.rel;
@@ -58,7 +58,11 @@
 					this.head = this.pos.copy().add(this.headOffset);
 					this.tail = this.pos.copy().add(this.tailOffset);
 
-					let mindist = 2
+					let input0 = 0;
+					let input1 = 0;
+					let input2 = 0;
+
+					let mindist = 2; // 2;
 			      
 					// get relative vector from my head to its tail:
 					let rel = this.tail.copy().sub(this.head).rotate(-this.vel.heading());
@@ -71,16 +75,16 @@
 
 						// for distance we'd like intensity to be highest when near, lowest when far; a 1/distance-squared is good; 
 						// and made relative to our size:
-				        this.inputs[0] = this.size / (this.size + rel.dot(rel));
+				        input0 = this.size / (this.size + rel.dot(rel));
 
 				        // relative angle ordinarily runs -pi...pi
 				        // we can take the cosine of the angle to get -1..1
 				        // then scale this to 0..1:
-				        this.inputs[1] = Math.cos(rel.heading()) * 0.5 + 0.5; 
+				        input1 = Math.cos(rel.heading()) * 0.5 + 0.5; 
 				        
 				        // 3rd input tells us whether we are closer to the head or the tail:
-				        let distance2 = this.head.distance(this.tail)
-				        this.inputs[2] = distance2 < distance ? 0 : 1;
+				        let distance2 = this.head.dist(this.tail)
+				        input2 = distance2 < distance ? 0 : 1;
 
 						// store relative vector here for sake of visualization later
 						this.rel = rel;
@@ -88,12 +92,11 @@
 
 					// ~ ~ ~ ~ ~
 
-				    console.log(this.brain.outputs[0] + " " + this.brain.outputs[1]);
-					this.brain.update();
+					this.brain.update(input0, input1, input2);
 				    let speed = this.brain.outputs[0];
 				    let angle = this.brain.outputs[1] - this.brain.outputs[2];
 				    this.vel.rotate(angle);
-				    this.pos.add(this.vel * speed);
+				    this.pos.add(this.vel);
 				}
 
 				draw() {
