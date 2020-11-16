@@ -15,9 +15,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(0x000000);
 renderer.toneMapping = THREE.ReinhardToneMapping;
-const exposureLow = Math.pow(1.05, 4.0);
-const exposureHigh = Math.pow(1.5, 4.0);
-renderer.toneMappingExposure = exposureLow;
+renderer.toneMappingExposure = Math.pow(1.1, 4.0);
 renderer.autoClear = false;
 document.body.appendChild(renderer.domElement);
 
@@ -192,12 +190,12 @@ function resetCameraPosition() {
 let lexicon = "FfXxYyZz<>(.".split("");
 
 let pop = [];
-const pop_size = 25;
+const pop_size = 35;
 const mutability = 0.5;
 const numCmds = 50;
 const angleChange = 1.25;
 let firstRun = true;
-const maxComplexity = 400;
+const maxComplexity = 500;
 
 function reset() {
 	pop = [];
@@ -228,9 +226,10 @@ class Child {
 		this.brain = new Brain();
 		this.head;
 		this.tail;
-		this.velRange = 0.5; 
+		this.velRange = 0.2; 
 		this.vel = new THREE.Vector3(Math.random() * this.velRange, Math.random() * this.velRange, Math.random() * this.velRange);
 		this.size = triggerDistance;
+		this.timeShift = Math.random() * 0.2;
 	}
 
 	updateBrain() {
@@ -322,6 +321,10 @@ class Child {
 		return geno;
 	}
 
+	getTimeShift(val) {
+		return val * (Math.sin(now) + this.timeShift);
+	}
+
 	turtledraw(t, cmds) {
 		let lines = [];
 		now = clock.getElapsedTime() / globalSpeedFactor;
@@ -342,22 +345,22 @@ class Child {
 				lines.push(t.pos.clone());
 			} else if (cmd == "X") {
 				// rotate +x:
-				t.dir.applyAxisAngle(axisX, t.angle * Math.sin(now));
+				t.dir.applyAxisAngle(axisX, this.getTimeShift(t.angle));
 			} else if (cmd == "x") {
 				// rotate -x:
-				t.dir.applyAxisAngle(axisX, -t.angle * Math.sin(now));
+				t.dir.applyAxisAngle(axisX, this.getTimeShift(-t.angle));
 			} else if (cmd == "Y") {
 				// rotate +y:
-				t.dir.applyAxisAngle(axisY, t.angle * Math.sin(now));
+				t.dir.applyAxisAngle(axisY, this.getTimeShift(t.angle));
 			} else if (cmd == "y") {
 				// rotate -y:
-				t.dir.applyAxisAngle(axisY, -t.angle * Math.sin(now));
+				t.dir.applyAxisAngle(axisY, this.getTimeShift(-t.angle));
 			} else if (cmd == "Z") {
 				// rotate +z:
-				t.dir.applyAxisAngle(axisZ, t.angle * Math.sin(now));
+				t.dir.applyAxisAngle(axisZ, this.getTimeShift(t.angle));
 			} else if (cmd == "z") {
 				// rotate -z:
-				t.dir.applyAxisAngle(axisZ, -t.angle * Math.sin(now));
+				t.dir.applyAxisAngle(axisZ, this.getTimeShift(-t.angle));
 			} else if (cmd == "<") {
 				t.angle *= angleChange;
 			} else if (cmd == ">") {
@@ -430,7 +433,6 @@ function draw() {
 				armRegenerateIndex = i;
 				armRegenerate = true;
 				armRedmat = true;
-				renderer.toneMappingExposure = exposureHigh;
 			}
 		} catch (e) { 
 			console.log(e);
@@ -448,7 +450,6 @@ function draw() {
 
 	if (armRedmat) {
 		setTimeout(function() {
-			renderer.toneMappingExposure = exposureLow;			
 			armRedmat = false;		
 		}, 600);
 	}
