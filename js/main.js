@@ -384,8 +384,21 @@ function regenerate(chosen) {
 	
 	for (let i=0; i<pop_size; i++) {
 		let child = new Child();
-		child.brain = parent.brain;
-		
+
+		// brain
+		if (i/pop_size < parent.brain.elitism) {
+			child.brain.nn = parent.brain.nn;
+		} else {
+			child.brain.nn = parent.brain.nn.slice(0);
+
+			for (let j=0; j<child.brain.nn.length; j++) {
+				if (Math.random() < child.brain.mutability/child.brain.nn.length) {
+					child.brain.nn[j] += (Math.random()*5)-2;
+				} 
+			}
+		}
+
+		// body
 		for (let j=0; j<parent.cmds.length; j++) {
 			if (Math.random() < mutability / parent.cmds.length) {
 				child.cmds[j] = lexicon[parseInt(Math.random() * lexicon.length)];
@@ -440,15 +453,16 @@ function draw() {
 		}, 600);
 	}
 
-	//console.log("!!! " + rotateStart.x + ", " + rotateStart.y + " | " + rotateEnd.x + ", " + rotateEnd.y + " | " + rotateDelta.x + ", " + rotateDelta.y);
-
 	composer.render();
 
 	requestAnimationFrame(draw);
 }
 
-window.addEventListener("keydown", function(event) {
-	if (util.getKeyCode(event) === ' ')	reset(); //regenerate(parseInt(Math.random() * pop.length));	    
+window.addEventListener("keyup", function(event) {
+	if (util.getKeyCode(event) === ' ')	{
+		reset(); 
+		console.log("RESET");
+	}    
 });
 
 window.onload = reset;
