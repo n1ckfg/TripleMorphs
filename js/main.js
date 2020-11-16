@@ -228,7 +228,8 @@ class Child {
 		this.brain = new Brain();
 		this.head;
 		this.tail;
-		this.vel = new THREE.Vector3(0,0);
+		this.velRange = 0.5; 
+		this.vel = new THREE.Vector3(Math.random() * this.velRange, Math.random() * this.velRange, Math.random() * this.velRange);
 		this.size = triggerDistance;
 	}
 
@@ -242,7 +243,7 @@ class Child {
 		let mindist = 2; // 2;
       
 		// get relative vector from my head to its tail:
-		let rel = new THREE.Vector3(0,0,0);//this.tail.clone().sub(this.head).rotate(-this.vel.angle());
+		let rel = this.tail.clone().sub(this.head).applyAxisAngle(axisX, -this.vel.angleTo(this.head));
 		let distance = rel.length();
 		// TODO: could also limit relative angle here
 		if (distance < mindist) {
@@ -257,7 +258,7 @@ class Child {
 	        // relative angle ordinarily runs -pi...pi
 	        // we can take the cosine of the angle to get -1..1
 	        // then scale this to 0..1:
-	        input1 = 1.0; //Math.cos(rel.angle(1)) * 0.5 + 0.5; 
+	        input1 = Math.cos(rel.angleTo(this.head)) * 0.5 + 0.5; 
 	        
 	        // 3rd input tells us whether we are closer to the head or the tail:
 	        let distance2 = this.head.distanceTo(this.tail)
