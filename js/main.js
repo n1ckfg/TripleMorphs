@@ -5,7 +5,8 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(0x000000);
 renderer.toneMapping = THREE.ReinhardToneMapping;
-renderer.toneMappingExposure = Math.pow(1.1, 4.0);
+const exposure = 1.2;
+renderer.toneMappingExposure = Math.pow(exposure, 4.0);
 renderer.autoClear = false;
 document.body.appendChild(renderer.domElement);
 
@@ -33,9 +34,12 @@ const meshLineWidth = 0.6;
 const meshLineOpacity = 0.1;
 const meshLineResolution = 1;
 
-const mat1 = createMat(0xaaffff, meshLineOpacity, meshLineWidth);
-const mat2 = createMat(0xffffaa, meshLineOpacity, meshLineWidth);
-const mat3 = createMat(0xff1111, meshLineOpacity, meshLineWidth);
+//const mat1 = createMeshLineMat(0xaaffff, meshLineOpacity, meshLineWidth);
+//const mat2 = createMeshLineMat(0xffffaa, meshLineOpacity, meshLineWidth);
+//const mat3 = createMeshLineMat(0xff1111, meshLineOpacity, meshLineWidth);
+const mat1 = new THREE.LineBasicMaterial({ color: 0xaaffff });
+const mat2 = new THREE.LineBasicMaterial({ color: 0xffffaa });
+const mat3 = new THREE.LineBasicMaterial({ color: 0xff1111 });
 
 const globalScale = new THREE.Vector3(50, -50, 50);
 const globalOffset = new THREE.Vector3(-20, 60, -350); 
@@ -54,9 +58,9 @@ movingDelta = 0.03;
 let now = 0;
 
 const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-bloomPass.threshold = 0;
+bloomPass.threshold = 0; //0;
 bloomPass.strength = 3.5; //1.5;
-bloomPass.radius = 0.8;
+bloomPass.radius = 1.2; //0.8
 
 const renderPass = new THREE.RenderPass(scene, camera);
 
@@ -68,10 +72,10 @@ let lexicon = "FfXxYyZz<>(.".split("");
 let pop = [];
 const pop_size = 35;
 const mutability = 0.5;
-const numCmds = 50;
+const numCmds = 60;
 const angleChange = 1.25;
 let firstRun = true;
-const maxComplexity = 200;
+const maxComplexity = numCmds*2;
 
 class Turtle {
 
@@ -93,7 +97,7 @@ class Child {
 		this.pos = new THREE.Vector3(x, y, z/2).multiplyScalar(globalSpread).multiply(globalScale);
 		this.randomDrift = 500 + (Math.random() * 500);
 		this.points = [];
-		this.geo = new MeshLine();
+		//this.geo = new MeshLine();
 		this.geoBuffer = new THREE.BufferGeometry();
 		this.newLine;
 		this.brain = new Brain();
@@ -166,20 +170,24 @@ class Child {
 			point.multiply(globalScale).add(this.pos).add(globalOffset);
 		}
 		this.geoBuffer.setFromPoints(this.points);
-		this.geo.setGeometry(this.geoBuffer);
+		//this.geo.setGeometry(this.geoBuffer);
 
 		//let newLine;
 		if (armRegenerate) {
-			this.newLine = new THREE.Mesh(this.geo.geometry, mat3);
+			//this.newLine = new THREE.Mesh(this.geo.geometry, mat3);
+			this.newLine = new THREE.Line(this.geoBuffer, mat3);
 		} else {
 			if (Math.random() < 0.2) {
 				if (armRedmat) {
-					this.newLine = new THREE.Mesh(this.geo.geometry, mat3);
+					//this.newLine = new THREE.Mesh(this.geo.geometry, mat3);
+					this.newLine = new THREE.Line(this.geoBuffer, mat3);
 				} else {
-					this.newLine = new THREE.Mesh(this.geo.geometry, mat2);
+					//this.newLine = new THREE.Mesh(this.geo.geometry, mat2);
+					this.newLine = new THREE.Line(this.geoBuffer, mat2);
 				}
 			} else {
-				this.newLine = new THREE.Mesh(this.geo.geometry, mat1);
+				//this.newLine = new THREE.Mesh(this.geo.geometry, mat1);
+				this.newLine = new THREE.Line(this.geoBuffer, mat1);
 			}
 		}
 
@@ -254,7 +262,7 @@ class Child {
 
 }
 
-function createMat(_color, _opacity, _lineWidth) {
+function createMeshLineMat(_color, _opacity, _lineWidth) {
     let mat = new MeshLineMaterial({
         //useMap: 1,
         //map: texture,
@@ -287,7 +295,7 @@ function regenerate(chosen) {
 
 		// brain
 		if (i/pop_size < parent.brain.elitism) {
-			child.brain.nn = parent.brain.nn;
+			child.brain.nn = JSON.parse(JSON.stringify(parent.brain.nn));
 		} else {
 			child.brain.nn = parent.brain.nn.slice(0);
 
