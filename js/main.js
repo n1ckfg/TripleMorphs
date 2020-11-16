@@ -274,7 +274,11 @@ class Child {
 	    let speed = this.brain.outputs[0];
 	    let angle = this.brain.outputs[1] - this.brain.outputs[2];
 	    this.vel.applyAxisAngle(axisX, angle);
-	    this.pos.add(this.vel);
+	    
+	    //this.pos.add(this.vel);
+	    this.pos.x += this.vel.x;
+		this.pos.y += Math.sin(now*10) / this.randomDrift;
+	    this.pos.z += this.vel.z;
 	}
 
 	draw() {
@@ -284,7 +288,7 @@ class Child {
 
 		this.updateBrain();
 
-		this.pos.y += Math.sin(now*10) / this.randomDrift;
+		//this.pos.y += Math.sin(now*10) / this.randomDrift;
 	
 		for (let point of this.points) {
 			point.multiply(globalScale).add(this.pos).add(globalOffset);
