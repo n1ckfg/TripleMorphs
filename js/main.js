@@ -240,10 +240,10 @@ class Child {
 		let input1 = 0;
 		let input2 = 0;
 
-		let mindist = 2; // 2;
+		let mindist = 20; // 2;
       
 		// get relative vector from my head to its tail:
-		let rel = this.tail.clone().sub(this.head).applyAxisAngle(axisX, -this.vel.angleTo(this.head));
+		let rel = this.tail.clone().sub(this.head).applyAxisAngle(axisZ, -this.vel.angleTo(this.head));
 		let distance = rel.length();
 		// TODO: could also limit relative angle here
 		if (distance < mindist) {
@@ -273,7 +273,7 @@ class Child {
 		this.brain.update(input0, input1, input2);
 	    let speed = this.brain.outputs[0];
 	    let angle = this.brain.outputs[1] - this.brain.outputs[2];
-	    this.vel.applyAxisAngle(axisX, angle);
+	    this.vel.applyAxisAngle(axisZ, angle);
 	    
 	    //this.pos.add(this.vel);
 	    this.pos.x += this.vel.x;
@@ -384,6 +384,7 @@ function regenerate(chosen) {
 	
 	for (let i=0; i<pop_size; i++) {
 		let child = new Child();
+		child.brain = parent.brain;
 		
 		for (let j=0; j<parent.cmds.length; j++) {
 			if (Math.random() < mutability / parent.cmds.length) {
