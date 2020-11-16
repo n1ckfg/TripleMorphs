@@ -226,12 +226,62 @@ class Child {
 		this.geoBuffer = new THREE.BufferGeometry();
 		this.newLine;
 		this.brain = new Brain();
+		this.head;
+		this.tail;
+		this.vel = new THREE.Vector3(0,0);
+		this.size = triggerDistance;
+	}
+
+	updateBrain() {
+		this.head = this.points[0].clone();
+		this.tail = this.points[this.points.length-1].clone();
+		let input0 = 0;
+		let input1 = 0;
+		let input2 = 0;
+
+		let mindist = 2; // 2;
+      
+		// get relative vector from my head to its tail:
+		let rel = new THREE.Vector3(0,0,0);//this.tail.clone().sub(this.head).rotate(-this.vel.angle());
+		let distance = rel.length();
+		// TODO: could also limit relative angle here
+		if (distance < mindist) {
+			mindist = distance;
+
+			// update sensors, which should range from 0..1
+
+			// for distance we'd like intensity to be highest when near, lowest when far; a 1/distance-squared is good; 
+			// and made relative to our size:
+	        input0 = this.size / (this.size + rel.dot(rel));
+
+	        // relative angle ordinarily runs -pi...pi
+	        // we can take the cosine of the angle to get -1..1
+	        // then scale this to 0..1:
+	        input1 = 1.0; //Math.cos(rel.angle(1)) * 0.5 + 0.5; 
+	        
+	        // 3rd input tells us whether we are closer to the head or the tail:
+	        let distance2 = this.head.distanceTo(this.tail)
+	        input2 = distance2 < distance ? 0 : 1;
+
+			// store relative vector here for sake of visualization later
+			this.rel = rel;
+		}
+
+		// ~ ~ ~ ~ ~
+
+		this.brain.update(input0, input1, input2);
+	    let speed = this.brain.outputs[0];
+	    let angle = this.brain.outputs[1] - this.brain.outputs[2];
+	    this.vel.applyAxisAngle(axisX, angle);
+	    this.pos.add(this.vel);
 	}
 
 	draw() {
 		let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, 0.1, 0), Math.PI/4);
 
 		this.points = this.turtledraw(turtle, this.cmds);
+
+		this.updateBrain();
 
 		this.pos.y += Math.sin(now*10) / this.randomDrift;
 	
