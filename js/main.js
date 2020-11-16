@@ -71,7 +71,7 @@ const mutability = 0.5;
 const numCmds = 50;
 const angleChange = 1.25;
 let firstRun = true;
-const maxComplexity = 500;
+const maxComplexity = 200;
 
 class Turtle {
 
@@ -99,7 +99,7 @@ class Child {
 		this.brain = new Brain();
 		this.head;
 		this.tail;
-		this.velRange = 0.2; 
+		this.velRange = 0.4; 
 		this.vel = new THREE.Vector3(Math.random() * this.velRange, Math.random() * this.velRange, Math.random() * this.velRange);
 		this.size = triggerDistance;
 		this.timeShift = Math.random() * 0.2;
