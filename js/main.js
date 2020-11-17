@@ -191,6 +191,7 @@ class Child {
 			}
 		}
 
+		this.newLine.frustumCulled = false;
 		scene.add(this.newLine);
 	}
 
