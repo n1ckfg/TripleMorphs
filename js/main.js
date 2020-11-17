@@ -91,7 +91,8 @@ class Turtle {
 
 class Child {
 
-	constructor() {
+	constructor(idx) {
+		this.index = idx;
 		this.cmds = this.createCmds(numCmds);
 		let x = Math.random() - 0.5;
 		let y = Math.random() - 0.5;
@@ -163,6 +164,7 @@ class Child {
 		let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, 0.1, 0), Math.PI/4);
 
 		this.points = this.turtledraw(turtle, this.cmds);
+		//console.log(this.index + ": " + this.points.length);
 
 		this.updateBrain();
 
@@ -294,7 +296,7 @@ function regenerate(chosen) {
 	let parent = pop[chosen];
 	
 	for (let i=0; i<pop_size; i++) {
-		let child = new Child();
+		let child = new Child(i);
 
 		// brain
 		if (i/pop_size < parent.brain.elitism) {
@@ -328,7 +330,7 @@ function regenerate(chosen) {
 function reset() {
 	pop = [];
 	for (let i=0; i<pop_size; i++) {
-		pop.push(new Child());
+		pop.push(new Child(i));
 	}
 
 	if (firstRun) {
