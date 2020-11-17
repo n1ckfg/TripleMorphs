@@ -61,7 +61,7 @@ let now = 0;
 
 const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
 bloomPass.threshold = 0; //0;
-bloomPass.strength = 8; //1.5;
+bloomPass.strength = 6; //1.5;
 bloomPass.radius = 0.8; //0.8
 
 const renderPass = new THREE.RenderPass(scene, camera);
@@ -72,12 +72,16 @@ composer.addPass(bloomPass);
 
 let lexicon = "FfXxYyZz<>(.".split("");
 let pop = [];
-const pop_size = 35;
+const pop_size = 30;
 const mutability = 0.5;
 const numCmds = 60;
 const angleChange = 1.25;
 let firstRun = true;
 const maxComplexity = numCmds*2;
+
+let bigGeoBuffer = new THREE.BufferGeometry();
+let bigPoints = [];
+let bigLine;
 
 class Turtle {
 
@@ -101,8 +105,8 @@ class Child {
 		this.randomDrift = 500 + (Math.random() * 500);
 		this.points = [];
 		//this.geo = new MeshLine();
-		this.geoBuffer = new THREE.BufferGeometry();
-		this.newLine;
+		//this.geoBuffer = new THREE.BufferGeometry();
+		//this.newLine;
 		this.brain = new Brain();
 		this.head;
 		this.tail;
@@ -140,7 +144,7 @@ class Child {
 	        input1 = Math.cos(rel.angleTo(this.head)) * 0.5 + 0.5; 
 	        
 	        // 3rd input tells us whether we are closer to the head or the tail:
-	        let distance2 = this.head.distanceTo(this.tail)
+	        let distance2 = this.head.distanceTo(this.tail);
 	        input2 = distance2 < distance ? 0 : 1;
 
 			// store relative vector here for sake of visualization later
@@ -164,39 +168,13 @@ class Child {
 		let turtle = new Turtle(new THREE.Vector3(0.5, 0.9, 0), new THREE.Vector3(0, 0.1, 0), Math.PI/4);
 
 		this.points = this.turtledraw(turtle, this.cmds);
-		//console.log(this.index + ": " + this.points.length);
 
 		this.updateBrain();
 
-		//this.pos.y += Math.sin(now*10) / this.randomDrift;
-	
 		for (let point of this.points) {
 			point.multiply(globalScale).add(this.pos).add(globalOffset);
-		}
-		this.geoBuffer.setFromPoints(this.points);
-		//this.geo.setGeometry(this.geoBuffer);
-
-		//let newLine;
-		if (armRegenerate) {
-			//this.newLine = new THREE.Mesh(this.geo.geometry, mat3);
-			this.newLine = new THREE.Line(this.geoBuffer, mat3);
-		} else {
-			if (Math.random() < 0.2) {
-				if (armRedmat) {
-					//this.newLine = new THREE.Mesh(this.geo.geometry, mat3);
-					this.newLine = new THREE.Line(this.geoBuffer, mat3);
-				} else {
-					//this.newLine = new THREE.Mesh(this.geo.geometry, mat2);
-					this.newLine = new THREE.Line(this.geoBuffer, mat2);
-				}
-			} else {
-				//this.newLine = new THREE.Mesh(this.geo.geometry, mat1);
-				this.newLine = new THREE.Line(this.geoBuffer, mat1);
-			}
-		}
-
-		this.newLine.frustumCulled = false;
-		scene.add(this.newLine);
+			bigPoints.push(point);
+		}	
 	}
 
 	createCmds(size) {
@@ -342,6 +320,7 @@ function reset() {
 
 function draw() {
 	clearScene(scene);
+	bigPoints = [];
 
 	for (let i=0; i<pop.length; i++) {	
 		try {
@@ -357,6 +336,30 @@ function draw() {
 			console.log(e);
 		}
 	}
+
+	//console.log("Total points in frame: " + bigPoints.length);
+	bigGeoBuffer.setFromPoints(bigPoints);
+
+	if (armRegenerate) {
+		//this.newLine = new THREE.Mesh(this.geo.geometry, mat3);
+		bigLine = new THREE.LineSegments(bigGeoBuffer, mat3);
+	} else {
+		if (Math.random() < 0.2) {
+			if (armRedmat) {
+				//this.newLine = new THREE.Mesh(this.geo.geometry, mat3);
+				bigLine = new THREE.LineSegments(bigGeoBuffer, mat3);
+			} else {
+				//this.newLine = new THREE.Mesh(this.geo.geometry, mat2);
+				bigLine = new THREE.LineSegments(bigGeoBuffer, mat2);
+			}
+		} else {
+			//this.newLine = new THREE.Mesh(this.geo.geometry, mat1);
+			bigLine = new THREE.LineSegments(bigGeoBuffer, mat1);
+		}
+	}
+
+	//bigLine.frustumCulled = false;
+	scene.add(bigLine);
 
 	updatePlayer();
 	
