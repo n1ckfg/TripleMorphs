@@ -4,9 +4,11 @@ const renderer = new THREE.WebGLRenderer({ antialiasing: false, alpha: false });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setClearColor(0x000000);
-renderer.toneMapping = THREE.ReinhardToneMapping;
+
 const exposure = 1.2;
+renderer.toneMapping = THREE.ReinhardToneMapping;
 renderer.toneMappingExposure = Math.pow(exposure, 4.0);
+
 renderer.autoClear = false;
 document.body.appendChild(renderer.domElement);
 
@@ -59,8 +61,8 @@ let now = 0;
 
 const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
 bloomPass.threshold = 0; //0;
-bloomPass.strength = 3.5; //1.5;
-bloomPass.radius = 1.2; //0.8
+bloomPass.strength = 8; //1.5;
+bloomPass.radius = 0.8; //0.8
 
 const renderPass = new THREE.RenderPass(scene, camera);
 
