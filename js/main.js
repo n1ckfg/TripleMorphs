@@ -36,12 +36,7 @@ const meshLineWidth = 0.6;
 const meshLineOpacity = 0.1;
 const meshLineResolution = 1;
 
-//const mat1 = createMeshLineMat(0xaaffff, meshLineOpacity, meshLineWidth);
-//const mat2 = createMeshLineMat(0xffffaa, meshLineOpacity, meshLineWidth);
-//const mat3 = createMeshLineMat(0xff1111, meshLineOpacity, meshLineWidth);
 const mat1 = new THREE.LineBasicMaterial({ color: 0xaaffff });
-const mat2 = new THREE.LineBasicMaterial({ color: 0xffffaa });
-const mat3 = new THREE.LineBasicMaterial({ color: 0xff1111 });
 
 const globalScale = new THREE.Vector3(50, -50, 50);
 const globalOffset = new THREE.Vector3(-20, 60, -350); 
@@ -72,16 +67,17 @@ composer.addPass(bloomPass);
 
 let lexicon = "FfXxYyZz<>(.".split("");
 let pop = [];
-const pop_size = 30;
+const pop_size = 35;
 const mutability = 0.5;
 const numCmds = 60;
 const angleChange = 1.25;
 let firstRun = true;
-const maxComplexity = numCmds*2;
+const maxComplexity = numCmds*3;
 
 let bigGeoBuffer = new THREE.BufferGeometry();
 let bigPoints = [];
-let bigLine;
+let bigLine = new THREE.LineSegments(bigGeoBuffer, mat1);
+scene.add(bigLine);
 
 class Turtle {
 
@@ -319,7 +315,7 @@ function reset() {
 }
 
 function draw() {
-	clearScene(scene);
+	//clearScene(scene);
 	bigPoints = [];
 
 	for (let i=0; i<pop.length; i++) {	
@@ -341,25 +337,20 @@ function draw() {
 	bigGeoBuffer.setFromPoints(bigPoints);
 
 	if (armRegenerate) {
-		//this.newLine = new THREE.Mesh(this.geo.geometry, mat3);
-		bigLine = new THREE.LineSegments(bigGeoBuffer, mat3);
+		bigLine.material.color.setHex(0xff1111);
 	} else {
 		if (Math.random() < 0.2) {
 			if (armRedmat) {
-				//this.newLine = new THREE.Mesh(this.geo.geometry, mat3);
-				bigLine = new THREE.LineSegments(bigGeoBuffer, mat3);
+				bigLine.material.color.setHex(0xff1111);
 			} else {
-				//this.newLine = new THREE.Mesh(this.geo.geometry, mat2);
-				bigLine = new THREE.LineSegments(bigGeoBuffer, mat2);
+				bigLine.material.color.setHex(0xffffaa);
 			}
 		} else {
-			//this.newLine = new THREE.Mesh(this.geo.geometry, mat1);
-			bigLine = new THREE.LineSegments(bigGeoBuffer, mat1);
+			bigLine.material.color.setHex(0xaaffff);
 		}
 	}
 
 	//bigLine.frustumCulled = false;
-	scene.add(bigLine);
 
 	updatePlayer();
 	
