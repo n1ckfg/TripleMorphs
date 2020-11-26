@@ -373,7 +373,7 @@ function draw() {
 }
 
 window.addEventListener("keyup", function(event) {
-	if (util.getKeyCode(event) === ' ')	{
+	if (Util.getKeyCode(event) === ' ')	{
 		reset(); 
 		console.log("RESET");
 	}    
