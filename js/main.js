@@ -319,11 +319,8 @@ let markTime = 0;
 let markTimeMax = 5;
 
 function draw() {
-	if (keyIsPressed || isDragging) {
-		markTime = 0;
-	} else {
-		markTime += clock.getDelta() * 10;		
-	}
+	markTime ++;		
+	if (keyIsPressed || isDragging) markTime = 0;
 
 	if (markTime > markTimeMax) {
 		markTime = 0;
