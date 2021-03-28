@@ -308,13 +308,28 @@ function reset() {
 	}
 
 	if (firstRun) {
-		setupPlayer();
+		setupWasd();
+		setupMouse();
 		draw();
 		firstRun = false;
 	}
 }
 
+let markTime = 0;
+let markTimeMax = 5;
+
 function draw() {
+	if (keyIsPressed || isDragging) {
+		markTime = 0;
+	} else {
+		markTime += clock.getDelta() * 10;		
+	}
+
+	if (markTime > markTimeMax) {
+		markTime = 0;
+		armRegenerate = true;
+	}
+
 	//clearScene(scene);
 	bigPoints = [];
 
@@ -352,7 +367,7 @@ function draw() {
 
 	//bigLine.frustumCulled = false;
 
-	updatePlayer();
+	updateWasd();
 	
 	if (armRegenerate) {
 		setTimeout(function() {
