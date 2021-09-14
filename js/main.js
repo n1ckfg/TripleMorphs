@@ -324,7 +324,7 @@ function draw() {
 
 	if (markTime > markTimeMax) {
 		markTime = 0;
-		armRegenerate = true;
+		//armRegenerate = true;
 	}
 
 	//clearScene(scene);
