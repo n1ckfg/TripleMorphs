@@ -316,7 +316,7 @@ function reset() {
 }
 
 let markTime = 0;
-let markTimeMax = 5;
+let markTimeMax = 500;
 
 function draw() {
 	markTime ++;		
@@ -324,7 +324,7 @@ function draw() {
 
 	if (markTime > markTimeMax) {
 		markTime = 0;
-		//armRegenerate = true;
+		armRegenerate = true;
 	}
 
 	//clearScene(scene);
@@ -391,4 +391,4 @@ window.addEventListener("keyup", function(event) {
 	}    
 });
 
-window.onload = reset;
+window.onload = reset;	
